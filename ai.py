@@ -59,9 +59,25 @@ def available() -> bool:
     return why_unavailable() is None
 
 
+# El cliente se guarda a nivel de módulo a propósito.
+#
+# Escribir `genai.Client(...).models.generate_content(...)` no funciona: solo
+# se conserva una referencia a `.models`, así que Python destruye el objeto
+# Client y al destruirlo cierra la conexión HTTP por debajo. La petición sale
+# sobre un socket ya cerrado y falla con "Cannot send a request, as the client
+# has been closed".
+#
+# Además, reutilizarlo evita reabrir la conexión en cada una de las nueve
+# llamadas de la ronda.
+_CLIENT = None
+
+
 def _client():
-    from google import genai
-    return genai.Client(api_key=GEMINI_API_KEY)
+    global _CLIENT
+    if _CLIENT is None:
+        from google import genai
+        _CLIENT = genai.Client(api_key=GEMINI_API_KEY)
+    return _CLIENT
 
 
 def _generate(prompt: str, as_json: bool = True) -> str:
@@ -72,7 +88,9 @@ def _generate(prompt: str, as_json: bool = True) -> str:
         max_output_tokens=1600,
         response_mime_type="application/json" if as_json else "text/plain",
     )
-    resp = _client().models.generate_content(
+
+    cliente = _client()          # referencia viva mientras dura la petición
+    resp = cliente.models.generate_content(
         model=GEMINI_MODEL, contents=prompt, config=config
     )
     return (resp.text or "").strip()
