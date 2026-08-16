@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T19:52:22.701458+00:00",
+  "generated_at": "2026-08-16T19:53:51.757379+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -346,7 +346,7 @@
       "take_profit": 512.79,
       "stop_loss": 529.61,
       "rr_ratio": 1.8,
-      "rsi": 57.9,
+      "rsi": 58.0,
       "atr": 3.34,
       "activity_ratio": 0.0,
       "activity_label": "volumen",
@@ -378,7 +378,7 @@
         0.4853,
         0.5074,
         0.5074,
-        0.375,
+        0.3824,
         0.4191,
         0.4118,
         0.5735,
@@ -408,7 +408,7 @@
       "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 225.16, stop 222.38."
     }
   ],
-  "brief": "La única señal activa de la sesión es de entrada en <strong class='hi'>NVDA</strong> a 225.16, con un ratio de actividad de 1.81 y un take profit fijado en 230.16. No obstante, la entrada se sitúa apenas por debajo de su resistencia técnica de 227.49, planteando una contradicción directa con el objetivo planteado. Los demás valores del seguimiento —PLTR, SNOW, RKLB, AAPL, MSFT y BP— se mantienen exclusivamente en estado de observación. Conviene descartar operaciones donde el recorrido queda condicionado por niveles de resistencia inmediatos. Recordá que estas señales y niveles técnicos no están validados contra histórico.",
+  "brief": "Hoy el sistema solo genera una señal de entrada con <strong class='hi'>NVDA</strong> en compra a 225.16. Sin embargo, el objetivo fijado en 230.16 se sitúa por encima de la resistencia en 227.49, lo que plantea un conflicto técnico evidente a pesar de su ratio de actividad de 1.81. El resto de los valores del seguimiento permanece en observación, con descensos en PLTR y SNOW y actividad nula en BP. Evaluá descartar o ajustar la orden antes de asumir ese límite. Recordá que todos estos niveles son puramente técnicos y no están validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-16T19:50:51.270871+00:00",
     "universe_size": 134,
