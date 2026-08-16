@@ -1,5 +1,12 @@
 [
   {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "LUNR",
+    "time": "2026-08-16T17:55:48.689080+00:00",
+    "body": "RSI en <strong>71.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Señal",
     "kind_class": "",
     "symbol": "NVDA",
