@@ -1,9 +1,11 @@
 {
-  "generated_at": "2026-08-16T17:52:34.151238+00:00",
+  "generated_at": "2026-08-16T18:33:48.682743+00:00",
   "universe_size": 180,
-  "scanned": 172,
+  "scanned": 173,
   "candidates": 6,
   "timeframe": "1d",
+  "reviewed": 0,
+  "portfolio": null,
   "top": [
     {
       "symbol": "SI=F",
