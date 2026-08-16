@@ -17,6 +17,8 @@ No es asesoría financiera regulada.
 |---|---|
 | `universe.py` | El **universo amplio** que el radar rastrea a diario (~180 símbolos) |
 | `scanner.py` | Barrido diario: puntúa el universo y asciende los mejores |
+| `fundamentals.py` | Cifras económicas de cada empresa (valoración, márgenes, deuda, resultados) |
+| `ai.py` | Revisión con Gemini: cruza lo técnico con lo económico. **Opcional** |
 | `market.py` | Datos de Yahoo Finance y tu **watchlist fija** |
 | `analyzer.py` | Indicadores y señales (ENTRADA / OBSERVAR / PRECAUCION), en compra y en venta |
 | `bot.py` | Bot de Telegram: avisos y comandos `/revisar` y `/estado` |
@@ -262,6 +264,80 @@ como el resto del sistema.
 
 ---
 
+## La revisión con IA (opcional)
+
+Sin configurar, Vantage funciona igual: el editorial se genera con reglas y el
+radar ordena por su puntuación. Con `GEMINI_API_KEY`, los 8 mejores candidatos
+de cada día pasan por una segunda lectura.
+
+### Qué hace exactamente
+
+Por cada candidato, el modelo recibe dos bloques de datos: la señal técnica que
+calculó el sistema, y las cifras económicas de la empresa que trae
+`fundamentals.py` desde Yahoo Finance — sector, PER, márgenes, crecimiento,
+deuda, consenso de analistas y fecha de próximos resultados.
+
+Devuelve un veredicto de tres valores —**respaldar**, **matizar** o
+**descartar**— con nivel de convicción, la lectura técnica, la económica, los
+riesgos concretos y qué hecho invalidaría la idea. Todo eso aparece desplegable
+en la tabla del Radar y resumido en el mensaje de Telegram.
+
+Además hay una llamada extra que mira los candidatos **como conjunto**, para
+detectar concentración: si cinco de los ocho son la misma apuesta macro
+repetida, te lo dice. El sistema técnico analiza cada símbolo aislado y no tiene
+ninguna noción de correlación, así que esto tapa un hueco real.
+
+### Por qué el prompt está escrito así
+
+Tres decisiones deliberadas, todas en `ai.py`:
+
+**Se le prohíbe usar su memoria.** Si le pides análisis fundamental sin darle
+datos, un modelo inventa cifras a partir de su entrenamiento — números de hace
+más de un año, presentados con total seguridad. Por eso existe
+`fundamentals.py`: el modelo solo ve datos con fuente, y la regla 1 le obliga a
+escribir "sin datos" cuando falta algo.
+
+**Se le prohíbe predecir.** Nada de "subirá" ni de probabilidades. Un modelo de
+lenguaje no es un pronosticador de precios; pedirle que lo sea produce prosa
+convincente sin valor predictivo.
+
+**Se le autoriza a decir que no.** La regla 5 le anima explícitamente a
+responder "descartar". Un revisor que siempre respalda no revisa: solo añade
+párrafos que hacen parecer más sólida una señal que no ha cambiado. Ese es el
+riesgo real de meter IA aquí, y por eso está escrito así.
+
+### Coste
+
+Unas 10 llamadas al día: 8 candidatos, la visión de conjunto y el editorial.
+El plan gratuito de Google AI Studio permite del orden de mil diarias con los
+modelos Flash, así que en la práctica no pagas nada.
+
+Dos advertencias del plan gratuito: tus peticiones pueden usarse para mejorar
+los productos de Google, y activar la facturación **elimina** la asignación
+gratuita en lugar de sumarse a ella. No pongas tarjeta hasta necesitarlo.
+
+### Configurarlo
+
+1. Saca la clave en [aistudio.google.com](https://aistudio.google.com) — gratis,
+   sin tarjeta.
+2. En el repo: Settings → Secrets and variables → Actions → nuevo secret
+   `GEMINI_API_KEY`.
+3. Si el modelo por defecto da error, crea una *variable* (no secret) llamada
+   `GEMINI_MODEL` con uno de la familia Flash que tengas disponible. Los
+   modelos Pro salieron del plan gratuito en abril de 2026.
+
+### Lo que no arregla
+
+La IA lee, contrasta y avisa de contradicciones. No sabe si las señales
+aciertan, y su comentario sobre una señal sin validar sigue siendo comentario
+sobre una señal sin validar.
+
+Hay un riesgo que conviene tener presente: un párrafo bien escrito al lado de
+una recomendación aumenta la confianza más que el acierto. Si en algún momento
+notas que actúas por lo que dice el análisis y no por los niveles, apágalo.
+
+---
+
 ## Lo que falta
 
 La lógica —medias 20/50, RSI, ATR y pico de actividad— **no está validada
@@ -277,3 +353,4 @@ Otras ideas:
 - Filtro de calendario económico
 - Registro de las señales para poder medirlas después
 - Ampliar el universo a más bolsas europeas y asiáticas
+- Contexto de noticias con búsqueda de Google (5.000 consultas gratis al mes)

@@ -383,6 +383,82 @@
     table.rank td.co, table.rank th.co{display:none;}
   }
 
+  /* ============ Veredicto de la revisión con IA ============ */
+  .verdict{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border:1px solid currentColor;
+    white-space:nowrap;
+  }
+  .verdict.respaldar{background:var(--bull); border-color:var(--bull); color:var(--paper);}
+  .verdict.matizar{color:var(--muted);}
+  .verdict.descartar{background:var(--bear); border-color:var(--bear); color:var(--paper);}
+  .verdict.none{color:var(--rule); border-color:var(--rule);}
+
+  tr.detail td{
+    border-bottom:1px solid var(--rule);
+    padding:0 0 16px;
+    background:transparent;
+  }
+  .analysis{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0 26px;
+    border-left:2px solid var(--rule);
+    padding:2px 0 2px 16px;
+    margin-left:26px;
+  }
+  .analysis h4{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .analysis p{font-size:14px; line-height:1.55; margin-bottom:12px;}
+  .analysis .full{grid-column:1 / -1;}
+  .analysis ul{margin:0 0 12px 16px; font-size:14px; line-height:1.55;}
+  .clash{
+    grid-column:1 / -1;
+    border-left:3px solid var(--bear);
+    padding:6px 0 6px 12px;
+    margin-bottom:12px;
+    font-size:14px;
+  }
+  .no-fund{
+    grid-column:1 / -1;
+    font-size:12.5px;
+    color:var(--muted);
+    font-style:italic;
+  }
+  .expand{
+    background:none; border:none; cursor:pointer; padding:2px 5px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--mark);
+  }
+  .expand:hover{text-decoration:underline;}
+  .portfolio{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--mark);
+    padding:14px 18px;
+    margin-top:16px;
+  }
+  .portfolio h4{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px; font-weight:600; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--mark); margin-bottom:6px;
+  }
+  .portfolio p{font-size:14.5px; line-height:1.6; margin-bottom:6px;}
+  .portfolio p:last-child{margin-bottom:0;}
+  @media(max-width:760px){
+    .analysis{grid-template-columns:1fr; margin-left:0; padding-left:12px;}
+  }
+
   /* ============ Colofón ============ */
   .colophon{
     max-width:1220px;
@@ -695,36 +771,111 @@
     $("radarNote").textContent =
       `Barrido diario del universo completo. Los ${Math.min(8, top.length)} primeros `
       + `pasan a seguimiento horario; el aviso de entrada llega cuando la vela de una `
-      + `hora lo confirma. El orden es una heurística, no una probabilidad.`;
+      + `hora lo confirma. `
+      + (radar.reviewed
+          ? `Los ${radar.reviewed} mejores llevan revisión que cruza lo técnico con los `
+            + `números de la empresa. El veredicto es un contraste, no una previsión.`
+          : `El orden es una heurística, no una probabilidad.`);
+
+    const conRevision = top.some(r => r.ai);
 
     $("radarTable").innerHTML = `
       <table class="rank">
         <thead>
           <tr>
             <th></th><th>Valor</th><th class="co">Nombre</th><th>Sentido</th>
+            ${conRevision ? "<th>Revisión</th>" : ""}
             <th class="num">Entrada</th><th class="num">Objetivo</th>
             <th class="num">Stop</th><th class="num">R/B</th><th class="num">Punt.</th>
           </tr>
         </thead>
         <tbody>
-          ${top.map((r,i) => `
-            <tr>
-              <td class="pos">${i+1}</td>
-              <td class="tk">${esc(r.display_symbol)}${
-                enSeguimiento.has(r.symbol) ? `<span class="promoted">En seguimiento</span>` : ""
-              }</td>
-              <td class="co">${esc(r.name)}</td>
-              <td><span class="dir ${r.direction === "buy" ? "buy" : "sell"}">${
-                r.direction === "buy" ? "Compra" : "Venta"
-              }</span></td>
-              <td class="num">${esc(r.entry)}</td>
-              <td class="num">${esc(r.take_profit)}</td>
-              <td class="num">${esc(r.stop_loss)}</td>
-              <td class="num">1:${esc(r.rr_ratio)}</td>
-              <td class="num">${esc(r.score)}</td>
-            </tr>`).join("")}
+          ${top.map((r,i) => fila(r, i, conRevision, enSeguimiento)).join("")}
         </tbody>
-      </table>`;
+      </table>
+      ${bloqueConjunto(radar.portfolio)}`;
+
+    $("radarTable").querySelectorAll(".expand").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const fila = document.getElementById(btn.dataset.target);
+        const abierto = fila.hasAttribute("hidden");
+        fila.toggleAttribute("hidden");
+        btn.textContent = abierto ? "▲ cerrar" : "▼ análisis";
+      });
+    });
+  }
+
+  function fila(r, i, conRevision, enSeguimiento){
+    const v = r.ai;
+    const id = `an-${i}`;
+    const celdaRevision = conRevision ? `
+      <td>${v
+        ? `<span class="verdict ${esc(v.veredicto)}">${esc(v.veredicto)} ${esc(v.conviccion)}/5</span>`
+        : `<span class="verdict none">sin revisar</span>`}</td>` : "";
+
+    const principal = `
+      <tr>
+        <td class="pos">${i+1}</td>
+        <td class="tk">${esc(r.display_symbol)}${
+          enSeguimiento.has(r.symbol) ? `<span class="promoted">En seguimiento</span>` : ""
+        }</td>
+        <td class="co">${esc(r.name)}${
+          v ? `<br><button class="expand" data-target="${id}">▼ análisis</button>` : ""
+        }</td>
+        <td><span class="dir ${r.direction === "buy" ? "buy" : "sell"}">${
+          r.direction === "buy" ? "Compra" : "Venta"
+        }</span></td>
+        ${celdaRevision}
+        <td class="num">${esc(r.entry)}</td>
+        <td class="num">${esc(r.take_profit)}</td>
+        <td class="num">${esc(r.stop_loss)}</td>
+        <td class="num">1:${esc(r.rr_ratio)}</td>
+        <td class="num">${esc(r.score)}</td>
+      </tr>`;
+
+    if(!v) return principal;
+
+    const detalle = `
+      <tr class="detail" id="${id}" hidden>
+        <td colspan="${conRevision ? 10 : 9}">
+          <div class="analysis">
+            ${v.conflicto ? `<div class="clash"><strong>Contradicción:</strong> ${esc(v.conflicto)}</div>` : ""}
+            <div>
+              <h4>Lectura técnica</h4>
+              <p>${esc(v.tecnico)}</p>
+            </div>
+            <div>
+              <h4>Lectura económica</h4>
+              <p>${esc(v.economico)}</p>
+            </div>
+            ${(v.riesgos && v.riesgos.length) ? `
+              <div class="full">
+                <h4>Riesgos</h4>
+                <ul>${v.riesgos.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+              </div>` : ""}
+            ${v.invalidaria ? `
+              <div class="full">
+                <h4>Qué invalidaría la idea</h4>
+                <p>${esc(v.invalidaria)}</p>
+              </div>` : ""}
+            ${v.tiene_fundamentales === false ? `
+              <div class="no-fund">Sin datos fundamentales: no es una empresa cotizada,
+              así que la lectura económica es contexto, no cifras.</div>` : ""}
+          </div>
+        </td>
+      </tr>`;
+
+    return principal + detalle;
+  }
+
+  function bloqueConjunto(p){
+    if(!p) return "";
+    const partes = [];
+    if(p.concentracion) partes.push(`<p><strong>Concentración:</strong> ${esc(p.concentracion)}</p>`);
+    if(p.contradicciones) partes.push(`<p><strong>Contradicciones:</strong> ${esc(p.contradicciones)}</p>`);
+    if(p.advertencia) partes.push(`<p>${esc(p.advertencia)}</p>`);
+    if(!partes.length) return "";
+    return `<div class="portfolio"><h4>Visión de conjunto</h4>${partes.join("")}</div>`;
   }
 
   function renderColophon(data){

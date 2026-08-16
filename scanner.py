@@ -29,12 +29,15 @@ import pandas as pd
 
 import universe
 import market
+import fundamentals
+import ai
 from analyzer import analyze_frame, reason_text
 
 RADAR_FILE = "radar.json"           # el ranking completo, para el panel
 AUTO_FILE = "watchlist_auto.json"   # lo que se asciende al seguimiento horario
 
 PROMOTE_TOP = 8      # cuántos ascienden a vigilancia horaria
+REVIEW_TOP = 8       # a cuántos les pasa la revisión de IA (1 llamada cada uno)
 RADAR_TOP = 20       # cuántos se guardan para mostrar en el panel
 BATCH_SIZE = 40      # símbolos por petición; más alto arriesga que Yahoo corte
 
@@ -165,15 +168,45 @@ def candidates(resultados: list) -> list:
 # ------------------------------------------------------------------ guardar
 
 
+def review(cands: list) -> dict | None:
+    """
+    Pasa los mejores candidatos por la revisión de IA: análisis técnico
+    contrastado con los números de la empresa.
+
+    Solo se revisan los primeros: el universo entero serían 180 llamadas al
+    día para nada, porque la mayoría ni siquiera dio señal.
+    """
+    if not ai.available():
+        print("  (sin IA: falta GEMINI_API_KEY o el paquete google-genai)")
+        return None
+
+    revisados = cands[:REVIEW_TOP]
+    print(f"  revisando {len(revisados)} candidatos con {ai.GEMINI_MODEL}…")
+
+    for r in revisados:
+        fund = fundamentals.get_fundamentals(r["symbol"]) if r["asset_class"] == "Acción" else None
+        veredicto = ai.analyze_candidate(r, fund)
+        if veredicto:
+            r["ai"] = veredicto
+            print(f"    {r['display_symbol']:<11} {veredicto['veredicto']:<10} "
+                  f"convicción {veredicto.get('conviccion', '?')}/5")
+
+    conjunto = ai.analyze_portfolio(revisados)
+    if conjunto:
+        print("    visión de conjunto lista")
+    return conjunto
+
+
 def _slim(r: dict) -> dict:
     """Versión ligera para el panel: sin la serie del sparkline ni internos."""
     campos = ("symbol", "display_symbol", "name", "asset_class", "price", "change_pct",
               "signal", "direction", "entry", "take_profit", "stop_loss", "rr_ratio",
-              "rsi", "activity_ratio", "activity_label", "volume_based", "score", "reason")
+              "rsi", "activity_ratio", "activity_label", "volume_based", "score",
+              "reason", "ai")
     return {k: r[k] for k in campos if k in r}
 
 
-def save(resultados: list) -> dict:
+def save(resultados: list, conjunto: dict | None = None) -> dict:
     cands = candidates(resultados)
     ascendidos = [r["symbol"] for r in cands[:PROMOTE_TOP]]
 
@@ -183,6 +216,8 @@ def save(resultados: list) -> dict:
         "scanned": len(resultados),
         "candidates": len(cands),
         "timeframe": YF_INTERVAL,
+        "reviewed": sum(1 for r in cands[:RADAR_TOP] if "ai" in r),
+        "portfolio": conjunto,
         "top": [_slim(r) for r in cands[:RADAR_TOP]],
     }
     with open(RADAR_FILE, "w", encoding="utf-8") as f:
@@ -207,14 +242,32 @@ def format_digest(radar: dict) -> str:
         return (f"{cab}\n\nNingún candidato cumple hoy las tres condiciones de entrada. "
                 "Sin señales es un resultado válido.")
 
-    lineas = [cab, f"{radar['candidates']} candidatos · los mejores:\n"]
+    marca = {"respaldar": "\u2705", "matizar": "\u26a0\ufe0f", "descartar": "\u274c"}
+
+    lineas = [cab, f"{radar['candidates']} candidatos \u00b7 los mejores:\n"]
     for i, r in enumerate(top[:PROMOTE_TOP], 1):
         lado = "compra" if r["direction"] == "buy" else "venta"
+        v = r.get("ai") or {}
+
+        cabecera = f"{i}. *{r['display_symbol']}* — {lado} · {r['name']}"
+        if v.get("veredicto"):
+            cabecera += (f"\n   {marca.get(v['veredicto'], '')} {v['veredicto'].upper()}"
+                         f" · convicción {v.get('conviccion', '?')}/5")
+
         lineas.append(
-            f"{i}. *{r['display_symbol']}* — {lado} · {r['name']}\n"
+            f"{cabecera}\n"
             f"   {r['entry']} → {r['take_profit']} · stop {r['stop_loss']} · "
             f"R/B 1:{r['rr_ratio']}"
         )
+        if v.get("resumen"):
+            lineas.append(f"   _{v['resumen']}_")
+        if v.get("conflicto"):
+            lineas.append(f"   \u26a1 {v['conflicto']}")
+
+    conjunto = radar.get("portfolio") or {}
+    if conjunto.get("advertencia"):
+        lineas.append(f"\n\U0001F9ED *Visión de conjunto*\n{conjunto['advertencia']}")
+
     lineas.append("\n_Ascendidos a seguimiento horario. Los avisos de entrada "
                   "llegan cuando la vela de una hora lo confirme._")
     return "\n".join(lineas)
@@ -234,9 +287,13 @@ if __name__ == "__main__":
         print(f"{i:<3} {r['display_symbol']:<11} {r['score']:>6}  {lado:<7} "
               f"1:{r['rr_ratio']:<4} {r['name']}")
 
+    conjunto = None
+    if not dry:
+        conjunto = review(cands)
+
     if dry:
-        print("\n(--dry: no se guardó nada)")
+        print("\n(--dry: no se guardó nada ni se llamó a la IA)")
     else:
-        radar = save(resultados)
+        radar = save(resultados, conjunto)
         print(f"\n✔ {RADAR_FILE} y {AUTO_FILE} actualizados")
         print(f"  ascendidos: {', '.join(r['display_symbol'] for r in cands[:PROMOTE_TOP])}")

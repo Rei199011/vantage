@@ -201,44 +201,9 @@ def _rule_based_brief(results: list) -> str:
 
 
 def _ai_brief(results: list) -> str | None:
-    """Resumen con Claude, si hay ANTHROPIC_API_KEY. Si falla, se usa el de reglas."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        return None
-
-    try:
-        import anthropic
-    except ImportError:
-        return None
-
-    compact = [
-        {k: r[k] for k in ("display_symbol", "signal", "direction", "price", "change_pct",
-                           "entry", "take_profit", "stop_loss", "rr_ratio", "rsi",
-                           "activity_ratio", "support", "resistance")}
-        for r in results if "error" not in r
-    ]
-
-    prompt = (
-        "Escribí un resumen de mercado en español, 4-6 frases, tono sobrio y directo, "
-        "para el panel personal de un trader. Usá solo los datos del JSON: no inventes "
-        "noticias, contexto macro ni previsiones de precio. Marcá los símbolos con "
-        "<strong class='hi'>SÍMBOLO</strong> si la señal es ENTRADA y con "
-        "<strong class='lo'>SÍMBOLO</strong> si es PRECAUCION. Cerrá recordando que son "
-        "niveles técnicos sin validación histórica. Devolvé solo el texto, sin preámbulo.\n\n"
-        f"{json.dumps(compact, ensure_ascii=False)}"
-    )
-
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        msg = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=600,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return "".join(b.text for b in msg.content if b.type == "text").strip()
-    except Exception as e:
-        print(f"⚠ Resumen con IA no disponible ({e}); se usa el de reglas.")
-        return None
+    """Editorial con Gemini, si hay GEMINI_API_KEY. Si falla, se usa el de reglas."""
+    import ai
+    return ai.write_brief(results, timeframe=market.YF_INTERVAL)
 
 
 # ------------------------------------------------------------------ publicar
@@ -290,6 +255,13 @@ def _system_status(results: list) -> list:
             "pill_class": "local",
         },
         {
+            "name": "Revisión con IA",
+            "pulse": "ok" if _ai_ok() else "warn",
+            "rows": _ai_rows(),
+            "pill": "Opcional",
+            "pill_class": "local",
+        },
+        {
             "name": "Ejecución",
             "pulse": "ok",
             "rows": [
@@ -315,6 +287,24 @@ def _radar_rows() -> list:
         ["Universo", f"{r.get('universe_size', 0)} simbolos"],
         ["Candidatos", f"{r.get('candidates', 0)} con senal"],
         ["Velas", r.get("timeframe", "1d")],
+    ]
+
+
+def _ai_ok() -> bool:
+    import ai
+    return ai.available()
+
+
+def _ai_rows() -> list:
+    import ai
+    if not ai.available():
+        return [["Estado", "no configurada"],
+                ["Efecto", "el editorial se arma con reglas"]]
+    r = load_radar()
+    return [
+        ["Modelo", ai.GEMINI_MODEL],
+        ["Revisados", f"{r.get('reviewed', 0)} candidatos del radar"],
+        ["Alcance", "contraste técnico y económico"],
     ]
 
 

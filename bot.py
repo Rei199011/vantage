@@ -199,7 +199,8 @@ async def run_radar():
 
     print(f"Escaneando {len(universe.SYMBOLS)} simbolos...")
     resultados = scanner.scan()
-    radar = scanner.save(resultados)
+    conjunto = scanner.review(scanner.candidates(resultados))
+    radar = scanner.save(resultados, conjunto)
 
     print(f"{radar['scanned']} analizados, {radar['candidates']} candidatos")
     await bot.send_message(
