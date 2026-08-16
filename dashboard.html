@@ -459,6 +459,47 @@
     .analysis{grid-template-columns:1fr; margin-left:0; padding-left:12px;}
   }
 
+  /* ============ Registro: la métrica que decide ============ */
+  .ledger{
+    max-width:1220px;
+    margin:0 auto;
+    padding:24px 34px 30px;
+    border-top:3px double var(--ink);
+  }
+  .ledger-note{font-size:14.5px; color:var(--muted); margin:10px 0 0; max-width:72ch;}
+  .figures{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    border-top:1px solid var(--rule);
+    margin-top:14px;
+  }
+  .fig{padding:12px 16px 10px; border-left:1px solid var(--rule);}
+  .fig:first-child{border-left:none; padding-left:0;}
+  .fig dt{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:8.5px; font-weight:600; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .fig dd{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px; font-weight:600; margin-top:4px;
+  }
+  .fig dd small{font-size:12px; font-weight:400; color:var(--muted); display:block; margin-top:2px;}
+  .fig.pos dd{color:var(--bull);}
+  .fig.neg dd{color:var(--bear);}
+  .caveat{
+    border-left:3px solid var(--bear);
+    padding:8px 0 8px 14px;
+    margin-top:16px;
+    font-size:14.5px;
+    line-height:1.55;
+  }
+  @media(max-width:640px){
+    .ledger{padding-left:22px; padding-right:22px;}
+    .figures{grid-template-columns:1fr 1fr;}
+    .fig{border-left:none; padding-left:0;}
+  }
+
   /* ============ Colofón ============ */
   .colophon{
     max-width:1220px;
@@ -607,6 +648,16 @@
     </div>
     <p class="radar-note" id="radarNote"></p>
     <div id="radarTable"></div>
+  </section>
+
+  <section class="ledger" id="ledgerSection" hidden>
+    <div class="head-rule">
+      <h2>Registro</h2>
+      <span class="label" id="ledgerCount">—</span>
+    </div>
+    <p class="ledger-note" id="ledgerNote"></p>
+    <div id="ledgerFigures"></div>
+    <div id="ledgerCaveat"></div>
   </section>
 
   <section class="colophon">
@@ -878,6 +929,51 @@
     return `<div class="portfolio"><h4>Visión de conjunto</h4>${partes.join("")}</div>`;
   }
 
+  function renderLedger(data){
+    const j = data.journal || {};
+    const section = $("ledgerSection");
+    if(!j.total){ section.hidden = true; return; }
+    section.hidden = false;
+
+    $("ledgerCount").textContent = `${j.cerradas} cerradas · ${j.abiertas} abiertas`;
+
+    if(!j.cerradas){
+      $("ledgerNote").textContent =
+        `${j.total} señales anotadas, ninguna cerrada todavía. Cada una se registra `
+        + `antes de conocer el resultado, así que lo que salga de aquí no está contaminado `
+        + `por saber ya qué pasó.`;
+      $("ledgerFigures").innerHTML = "";
+      $("ledgerCaveat").innerHTML = "";
+      return;
+    }
+
+    const pos = j.esperanza_r > 0;
+    $("ledgerNote").textContent =
+      `La cifra que decide es la esperanza: cuánto gana o pierde de media cada operación, `
+      + `medida en múltiplos del riesgo y con costes ya descontados. El porcentaje de acierto, `
+      + `por sí solo, no dice nada.`;
+
+    $("ledgerFigures").innerHTML = `
+      <dl class="figures">
+        <div class="fig ${pos ? "pos" : "neg"}">
+          <dt>Esperanza</dt>
+          <dd>${j.esperanza_r > 0 ? "+" : ""}${esc(j.esperanza_r)} R<small>por operación</small></dd>
+        </div>
+        <div class="fig"><dt>Acierto</dt><dd>${esc(j.tasa_acierto)}%<small>${j.objetivo} de ${j.cerradas}</small></dd></div>
+        <div class="fig pos"><dt>Ganadora media</dt><dd>+${esc(j.r_medio_ganadora)} R</dd></div>
+        <div class="fig neg"><dt>Perdedora media</dt><dd>${esc(j.r_medio_perdedora)} R</dd></div>
+        <div class="fig ${j.total_r > 0 ? "pos" : "neg"}">
+          <dt>Acumulado</dt><dd>${j.total_r > 0 ? "+" : ""}${esc(j.total_r)} R</dd>
+        </div>
+        <div class="fig"><dt>Peor racha</dt><dd>${esc(j.peor_racha)}<small>pérdidas seguidas</small></dd></div>
+        <div class="fig"><dt>Duración</dt><dd>${esc(j.dias_medios)}<small>días de media</small></dd></div>
+      </dl>`;
+
+    $("ledgerCaveat").innerHTML = j.mensaje
+      ? `<div class="caveat"><strong>Muestra insuficiente.</strong> ${esc(j.mensaje)}</div>`
+      : "";
+  }
+
   function renderColophon(data){
     $("colophon").innerHTML = (data.status || []).map(c => `
       <div class="col-card">
@@ -919,6 +1015,7 @@
       </div>`;
     $("wire").innerHTML = "";
     $("radarSection").hidden = true;
+    $("ledgerSection").hidden = true;
     $("leaderBody").textContent = "—";
   }
 
@@ -933,6 +1030,7 @@
       renderQuotes(data);
       renderWire(data);
       renderRadar(data);
+      renderLedger(data);
       renderColophon(data);
       $("leaderBody").innerHTML = data.brief || "Sin resumen para esta sesión.";
     }catch(err){
