@@ -7,6 +7,10 @@ No hace falta cuenta de bróker, ni API key, ni terminal abierto, ni Windows.
 Vantage solo mira el mercado y te avisa; las órdenes las pasás vos a mano
 en el bróker que uses.
 
+Solo acciones. Las divisas y materias primas se retiraron: ya no se
+recomiendan. Los índices siguen usándose como contexto de mercado, pero
+nunca generan señal.
+
 Uso:
     python market.py            # comprueba que todos los símbolos responden
 """
@@ -22,20 +26,17 @@ import universe
 # TU WATCHLIST — editá esta lista y listo.
 #
 # Formato: (ticker de Yahoo, nombre a mostrar, clase de activo)
-# Para añadir algo, buscalo en finance.yahoo.com y copiá el símbolo de la URL.
+# Solo acciones: buscá el ticker en finance.yahoo.com y copialo de la URL.
+# Los americanos van tal cual (NVDA); los europeos llevan sufijo de bolsa
+# (SAN.MC en Madrid, ASML.AS en Ámsterdam, SHEL.L en Londres).
 # ---------------------------------------------------------------------------
 WATCHLIST = [
-    ("EURUSD=X", "Euro / Dólar",        "Forex"),
-    ("GBPUSD=X", "Libra / Dólar",       "Forex"),
-    ("USDJPY=X", "Dólar / Yen",         "Forex"),
-    ("GC=F",     "Oro",                 "Metal"),
-    ("^NDX",     "Nasdaq 100",          "Índice"),
-    ("^GSPC",    "S&P 500",             "Índice"),
-    ("^DJI",     "Dow Jones 30",        "Índice"),
-    ("NVDA",     "NVIDIA Corp.",        "Acción"),
-    ("PLTR",     "Palantir Technologies","Acción"),
-    ("SNOW",     "Snowflake Inc.",      "Acción"),
-    ("RKLB",     "Rocket Lab USA",      "Acción"),
+    ("NVDA", "NVIDIA Corp.",         "Acción"),
+    ("PLTR", "Palantir Technologies", "Acción"),
+    ("SNOW", "Snowflake Inc.",       "Acción"),
+    ("RKLB", "Rocket Lab USA",       "Acción"),
+    ("AAPL", "Apple Inc.",           "Acción"),
+    ("MSFT", "Microsoft Corp.",      "Acción"),
 ]
 
 # Símbolos que el escáner ascendió al seguimiento horario. Lo escribe
@@ -123,12 +124,11 @@ def get_candles(symbol: str, count: int = 400) -> pd.DataFrame:
 
 def has_volume(df: pd.DataFrame) -> bool:
     """
-    ¿Este instrumento trae volumen real?
+    ¿Este símbolo trae volumen real?
 
-    En los pares de divisas Yahoo devuelve volumen 0: el mercado forex es
-    descentralizado y no hay un volumen consolidado. El analyzer necesita
-    saberlo para no descartar todas las señales de forex por falta de un
-    dato que nunca va a existir.
+    Las acciones siempre lo traen. Se mantiene la comprobación porque los
+    índices de contexto vienen con volumen cero o irregular, y el analyzer
+    necesita saberlo para confirmar con la amplitud de la vela en su lugar.
     """
     return bool(df["Volume"].tail(60).sum() > 0)
 
@@ -173,9 +173,7 @@ def pretty_symbol(symbol: str) -> str:
 
 
 def price_precision(symbol: str) -> int:
-    """Decimales con los que se muestra el precio de cada clase de activo."""
-    if symbol.endswith("=X"):
-        return 3 if "JPY" in symbol else 5
+    """Decimales con los que se muestra el precio."""
     return 2
 
 

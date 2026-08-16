@@ -123,6 +123,8 @@ def format_message(r: dict, veredicto: dict | None = None) -> str:
     if veredicto and veredicto.get("resumen"):
         marca = "✅" if veredicto.get("veredicto") == "respaldar" else "⚠️"
         lineas.append(f"\n{marca} <i>{_esc(veredicto['resumen'])}</i>")
+        if veredicto.get("momento"):
+            lineas.append(f"⏱ {_esc(veredicto['momento'])}")
 
     return "\n".join(lineas)
 

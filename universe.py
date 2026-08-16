@@ -3,44 +3,27 @@ Vantage — Universo de rastreo
 --------------------------------
 La lista amplia que el escáner revisa una vez al día.
 
-No son "todas las empresas del mundo": eso son más de 50.000 valores, y Yahoo
-Finance corta el acceso mucho antes. Esto es el universo razonable — lo que
-tiene liquidez suficiente para que los niveles técnicos signifiquen algo.
+Solo acciones. Las divisas, metales e índices se retiraron del universo
+operable: Vantage ya no recomienda operarlos.
 
-Añadir o quitar es seguro. El coste es tiempo: unos 250 símbolos tardan
+Los índices siguen descargándose, pero SOLO COMO CONTEXTO (ver CONTEXTO abajo).
+Nunca generan señal. Sirven para que la revisión sepa en qué régimen está el
+mercado: una compra en un valor aislado se lee distinto si el S&P viene
+cayendo tres semanas.
+
+Añadir o quitar es seguro. El coste es tiempo: unos 200 símbolos tardan
 alrededor de un minuto porque se descargan por lotes.
 """
 
-# --- Divisas: los pares que realmente se mueven -------------------------------
-FOREX = [
-    ("EURUSD=X", "Euro / Dólar"), ("GBPUSD=X", "Libra / Dólar"),
-    ("USDJPY=X", "Dólar / Yen"), ("USDCHF=X", "Dólar / Franco suizo"),
-    ("AUDUSD=X", "Dólar australiano / Dólar"), ("NZDUSD=X", "Dólar neozelandés / Dólar"),
-    ("USDCAD=X", "Dólar / Dólar canadiense"), ("EURGBP=X", "Euro / Libra"),
-    ("EURJPY=X", "Euro / Yen"), ("GBPJPY=X", "Libra / Yen"),
-    ("EURCHF=X", "Euro / Franco suizo"), ("AUDJPY=X", "Dólar australiano / Yen"),
-    ("CHFJPY=X", "Franco suizo / Yen"), ("EURAUD=X", "Euro / Dólar australiano"),
-    ("GBPAUD=X", "Libra / Dólar australiano"), ("EURCAD=X", "Euro / Dólar canadiense"),
-    ("CADJPY=X", "Dólar canadiense / Yen"), ("NZDJPY=X", "Dólar neozelandés / Yen"),
-    ("GBPCHF=X", "Libra / Franco suizo"), ("AUDNZD=X", "Australiano / Neozelandés"),
-    ("USDMXN=X", "Dólar / Peso mexicano"), ("USDSEK=X", "Dólar / Corona sueca"),
-    ("USDNOK=X", "Dólar / Corona noruega"), ("USDZAR=X", "Dólar / Rand"),
-]
-
-# --- Materias primas ----------------------------------------------------------
-COMMODITIES = [
-    ("GC=F", "Oro"), ("SI=F", "Plata"), ("HG=F", "Cobre"), ("PL=F", "Platino"),
-    ("CL=F", "Petróleo WTI"), ("BZ=F", "Petróleo Brent"), ("NG=F", "Gas natural"),
-    ("ZC=F", "Maíz"), ("ZW=F", "Trigo"), ("KC=F", "Café"),
-]
-
-# --- Índices ------------------------------------------------------------------
-INDICES = [
-    ("^GSPC", "S&P 500"), ("^NDX", "Nasdaq 100"), ("^DJI", "Dow Jones 30"),
-    ("^RUT", "Russell 2000"), ("^VIX", "Índice de volatilidad"),
-    ("^GDAXI", "DAX 40"), ("^FCHI", "CAC 40"), ("^IBEX", "IBEX 35"),
-    ("^FTSE", "FTSE 100"), ("^STOXX50E", "Euro Stoxx 50"),
-    ("^N225", "Nikkei 225"), ("^HSI", "Hang Seng"),
+# --- Índices: NO se operan. Solo dan contexto de régimen de mercado. --------
+CONTEXTO = [
+    ("^GSPC", "S&P 500"),
+    ("^NDX", "Nasdaq 100"),
+    ("^DJI", "Dow Jones 30"),
+    ("^RUT", "Russell 2000"),
+    ("^VIX", "Índice de volatilidad"),
+    ("^STOXX50E", "Euro Stoxx 50"),
+    ("^IBEX", "IBEX 35"),
 ]
 
 # --- Acciones de EE.UU.: grandes capitalizaciones y valores muy negociados -----
@@ -101,20 +84,19 @@ def _rows(pairs, clase):
     return [(t, n, clase) for t, n in pairs]
 
 
-UNIVERSE = (
-    _rows(FOREX, "Forex")
-    + _rows(COMMODITIES, "Materia prima")
-    + _rows(INDICES, "Índice")
-    + _rows(US_STOCKS, "Acción")
-    + _rows(EU_STOCKS, "Acción")
-)
+UNIVERSE = _rows(US_STOCKS, "Acción") + _rows(EU_STOCKS, "Acción")
 
 SYMBOLS = [row[0] for row in UNIVERSE]
 META = {row[0]: (row[1], row[2]) for row in UNIVERSE}
 
+CONTEXT_SYMBOLS = [row[0] for row in CONTEXTO]
+CONTEXT_META = {row[0]: row[1] for row in CONTEXTO}
+
 
 if __name__ == "__main__":
     from collections import Counter
-    print(f"Universo: {len(SYMBOLS)} símbolos")
+    print(f"Universo operable: {len(SYMBOLS)} acciones")
     for clase, n in Counter(r[2] for r in UNIVERSE).most_common():
         print(f"  {clase:<16} {n}")
+    print(f"\nContexto (no se opera): {len(CONTEXT_SYMBOLS)} índices")
+    print("  " + ", ".join(CONTEXT_META.values()))

@@ -42,6 +42,10 @@ load_dotenv()
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "").strip() or "gemini-flash-latest"
 
+# Lo que se escribe cuando la búsqueda no encuentra nada relevante. Se declara
+# acá arriba porque se usa como valor por defecto en varias firmas de función.
+SIN_NOTICIAS = "Sin noticias recientes localizadas."
+
 
 def why_unavailable() -> str | None:
     """Devuelve el motivo concreto por el que la IA no puede usarse, o None."""
@@ -80,18 +84,28 @@ def _client():
     return _CLIENT
 
 
-def _generate(prompt: str, as_json: bool = True) -> str:
+def _generate(prompt: str, as_json: bool = True, buscar: bool = False) -> str:
+    """
+    buscar=True activa la búsqueda de Google.
+
+    Ojo: cuando se usa la herramienta de búsqueda NO se pide salida JSON. La
+    API no garantiza combinar herramientas con formato estructurado, así que
+    las llamadas con búsqueda devuelven texto y se procesan aparte.
+    """
     from google.genai import types
 
-    config = types.GenerateContentConfig(
-        temperature=0.2,          # bajo: queremos consistencia, no creatividad
-        max_output_tokens=1600,
-        response_mime_type="application/json" if as_json else "text/plain",
-    )
+    kwargs = {"temperature": 0.2, "max_output_tokens": 1600}
+
+    if buscar:
+        kwargs["tools"] = [types.Tool(google_search=types.GoogleSearch())]
+    elif as_json:
+        kwargs["response_mime_type"] = "application/json"
 
     cliente = _client()          # referencia viva mientras dura la petición
     resp = cliente.models.generate_content(
-        model=GEMINI_MODEL, contents=prompt, config=config
+        model=GEMINI_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(**kwargs),
     )
     return (resp.text or "").strip()
 
@@ -142,11 +156,14 @@ Devolvé SOLO un objeto JSON, sin texto alrededor ni ```:
   "conflicto": "una frase si lo técnico y lo económico se contradicen, o null",
   "riesgos": ["riesgo concreto y verificable en los datos", "otro"],
   "invalidaria": "qué hecho concreto tumbaría esta idea",
+  "momento": "por qué ahora sí o ahora no: resultados cercanos, noticia ya descontada, mercado en contra… o null si no hay nada que señalar",
+  "noticia_clave": "el hecho reciente más relevante en una frase, o null si no hay noticias",
   "resumen": "una sola frase, la que leerías en el móvil"
 }"""
 
 
-def _prompt_candidato(tecnico: dict, fundamental_txt: str) -> str:
+def _prompt_candidato(tecnico: dict, fundamental_txt: str,
+                      noticias: str = SIN_NOTICIAS, contexto: str = "") -> str:
     datos = {k: v for k, v in tecnico.items() if k not in ("spark", "reason")}
     return f"""\
 Sos un analista revisando una señal generada por un sistema técnico automático.
@@ -170,21 +187,37 @@ Cómo leer estos campos:
 === DATOS ECONÓMICOS DE LA EMPRESA (Yahoo Finance) ===
 {fundamental_txt}
 
-Tu tarea: cruzar ambas lecturas y decir si la señal merece atención, si merece
-matices, o si hay que descartarla.
+=== NOTICIAS DE LOS ÚLTIMOS 7 DÍAS (búsqueda en Google) ===
+{noticias}
+
+=== RÉGIMEN DE MERCADO HOY (índices, no se operan) ===
+{contexto or "Sin datos de índices."}
+
+Tu tarea: cruzar las cuatro lecturas —técnica, económica, noticias y régimen de
+mercado— y decir si la señal merece atención, si merece matices, o si hay que
+descartarla.
+
+Presta atención especial al MOMENTO, no solo a la dirección:
+- Si hay resultados en los próximos días, una entrada técnica se vuelve una
+  apuesta a la publicación. Decilo.
+- Si una noticia reciente explica el movimiento, decí si el mercado ya la ha
+  descontado o si el recorrido puede seguir.
+- Si el régimen general del mercado va en contra de la operación, pesalo.
 
 {ESQUEMA}"""
 
 
-def analyze_candidate(tecnico: dict, fundamental: dict | None) -> dict | None:
-    """Revisa un candidato. Devuelve el veredicto o None si falla."""
+def analyze_candidate(tecnico: dict, fundamental: dict | None,
+                      noticias: str = SIN_NOTICIAS, contexto: str = "") -> dict | None:
+    """Revisa un candidato cruzando técnico, económico, noticias y mercado."""
     if not available():
         return None
 
     import fundamentals
 
     try:
-        texto = _generate(_prompt_candidato(tecnico, fundamentals.resumen_texto(fundamental)))
+        texto = _generate(_prompt_candidato(
+            tecnico, fundamentals.resumen_texto(fundamental), noticias, contexto))
     except Exception as e:
         print(f"    Fallo al analizar {tecnico.get('symbol')} con modelo "
               f"'{GEMINI_MODEL}': {type(e).__name__}: {e}")
@@ -197,7 +230,77 @@ def analyze_candidate(tecnico: dict, fundamental: dict | None) -> dict | None:
 
     datos["modelo"] = GEMINI_MODEL
     datos["tiene_fundamentales"] = bool(fundamental)
+    datos["tiene_noticias"] = noticias != SIN_NOTICIAS
     return datos
+
+
+# ------------------------------------------------------------ noticias
+
+
+def news_digest(symbol: str, nombre: str) -> str:
+    """
+    Busca en Google qué ha pasado con esta empresa en los últimos días.
+
+    Es lo único de todo el sistema que puede explicar POR QUÉ se mueve un
+    precio. El análisis técnico ve la forma del movimiento; esto ve la causa,
+    que es justo lo que decide si una caída es una oportunidad o el principio
+    de algo peor.
+
+    El plan gratuito incluye miles de consultas con búsqueda al mes; aquí se
+    usan unas ocho al día.
+    """
+    if not available():
+        return SIN_NOTICIAS
+
+    prompt = f"""\
+Buscá noticias de los últimos 7 días sobre {nombre} (cotiza como {symbol}).
+
+Resumí en 3-4 frases SOLO lo que sea material para alguien que se plantea
+operar la acción esta semana: resultados, guías, contratos, cambios de
+dirección, litigios, movimientos regulatorios, revisiones de analistas.
+
+Reglas:
+- Si no encontrás nada relevante de esos 7 días, respondé exactamente:
+  "{SIN_NOTICIAS}"
+- No inventes ni completes con lo que recuerdes de tu entrenamiento.
+- Sin opinar sobre si conviene comprar o vender.
+- Sin predecir el precio.
+- Indicá la fecha aproximada de cada hecho.
+- En español, frases cortas."""
+
+    try:
+        texto = _generate(prompt, buscar=True)
+    except Exception as e:
+        print(f"    Noticias no disponibles para {symbol}: {type(e).__name__}: {e}")
+        return SIN_NOTICIAS
+
+    return texto.strip() or SIN_NOTICIAS
+
+
+# ------------------------------------------------------ contexto de mercado
+
+
+def market_context(indices: list) -> str:
+    """
+    Régimen del mercado en una frase, a partir de los índices.
+
+    Sirve para lo que pediste como "los mejores momentos": una compra en un
+    valor aislado se lee muy distinto si el S&P lleva tres semanas cayendo o
+    si la volatilidad está disparada.
+    """
+    if not indices:
+        return "Sin datos de índices."
+
+    lineas = []
+    for r in indices:
+        if "error" in r:
+            continue
+        tendencia = ("alcista" if r["trend_up"] else "bajista" if r["trend_down"]
+                     else "sin dirección")
+        lineas.append(f"- {r['name']}: {r['price']} ({r['change_pct']:+}% sesión), "
+                      f"tendencia {tendencia}, RSI {r['rsi']}")
+
+    return "\n".join(lineas) if lineas else "Sin datos de índices."
 
 
 # ------------------------------------------------- visión de conjunto

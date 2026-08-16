@@ -1,0 +1,73 @@
+# Vantage — análisis y avisos en los servidores de GitHub.
+#
+# Con esto no hace falta Python en tu ordenador, ni dejarlo encendido:
+# GitHub ejecuta el análisis, te manda el aviso por Telegram y sube los
+# datos del panel él solo.
+#
+# Antes de que funcione, en el repo:
+#   Settings → Secrets and variables → Actions → New repository secret
+#     TELEGRAM_BOT_TOKEN = tu token
+#     TELEGRAM_CHAT_ID   = tu chat id
+#
+# Los secrets no se ven ni siquiera en un repo público, y no aparecen
+# en los logs de ejecución.
+
+name: Vantage
+
+on:
+  schedule:
+    # Cada hora en el minuto 17, de 08:00 a 21:00 UTC, de lunes a viernes.
+    # Ahora que solo se siguen acciones, arranca con Europa ya abierta y
+    # termina tras el cierre de Wall Street. Antes empezaba a las 06:00
+    # por el forex, que cotiza de noche.
+    # El minuto 17 es a propósito: las tareas en punto se acumulan y GitHub
+    # las retrasa más. El horario cubre la sesión europea y la americana.
+    - cron: '17 8-21 * * 1-5'
+
+  # Botón "Run workflow" en la pestaña Actions. Es el equivalente a /revisar,
+  # y funciona también desde la app de GitHub en el móvil.
+  workflow_dispatch:
+
+permissions:
+  contents: write        # necesario para subir data.json
+
+concurrency:
+  group: vantage         # que no se pisen dos ejecuciones
+  cancel-in-progress: false
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Bajar el repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Analizar y avisar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PANEL_TIMEZONE_LABEL: UTC
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+        run: python bot.py
+
+      - name: Publicar los datos del panel
+        run: |
+          git config user.name  "Vantage"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json events.json
+          # Si no cambió nada, no se hace commit y el paso termina bien igual.
+          git diff --staged --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Datos del panel — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push

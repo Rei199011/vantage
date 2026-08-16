@@ -98,8 +98,24 @@ def get_fundamentals(symbol: str) -> dict | None:
     fecha = _proxima_presentacion(symbol)
     if fecha:
         datos["Próximos resultados"] = fecha
+        dias = dias_hasta(fecha)
+        if dias is not None:
+            datos["Días hasta resultados"] = dias
+            if 0 <= dias <= 7:
+                datos["⚠ AVISO"] = (f"Presenta resultados en {dias} días. Abrir posición "
+                                    "ahora es apostar a la publicación, no al setup técnico.")
 
     return datos or None
+
+
+def dias_hasta(fecha_iso: str) -> int | None:
+    """Días desde hoy hasta esa fecha. Negativo si ya pasó."""
+    from datetime import date
+    try:
+        y, m, d = (int(x) for x in fecha_iso[:10].split("-"))
+        return (date(y, m, d) - date.today()).days
+    except (ValueError, TypeError):
+        return None
 
 
 def _proxima_presentacion(symbol: str) -> str | None:

@@ -168,6 +168,21 @@ def candidates(resultados: list) -> list:
 # ------------------------------------------------------------------ guardar
 
 
+def contexto_mercado() -> tuple[str, list]:
+    """Descarga los índices de contexto y devuelve (texto para la IA, resultados)."""
+    frames = _download_batch(universe.CONTEXT_SYMBOLS)
+    indices = []
+    for t in universe.CONTEXT_SYMBOLS:
+        df = frames.get(t)
+        if df is None:
+            continue
+        r = analyze_frame(df, t, timeframe=YF_INTERVAL)
+        if "error" not in r:
+            r["name"] = universe.CONTEXT_META.get(t, t)
+            indices.append(r)
+    return ai.market_context(indices), indices
+
+
 def review(cands: list) -> dict | None:
     """
     Pasa los mejores candidatos por la revisión de IA: análisis técnico
@@ -184,13 +199,19 @@ def review(cands: list) -> dict | None:
     revisados = cands[:REVIEW_TOP]
     print(f"  revisando {len(revisados)} candidatos con {ai.GEMINI_MODEL}…")
 
+    contexto, _ = contexto_mercado()
+    print("    contexto de mercado listo")
+
     for r in revisados:
-        fund = fundamentals.get_fundamentals(r["symbol"]) if r["asset_class"] == "Acción" else None
-        veredicto = ai.analyze_candidate(r, fund)
+        fund = fundamentals.get_fundamentals(r["symbol"])
+        noticias = ai.news_digest(r["symbol"], r["name"])
+        veredicto = ai.analyze_candidate(r, fund, noticias, contexto)
         if veredicto:
             r["ai"] = veredicto
+            r["ai"]["noticias"] = noticias
+            marca = "con noticias" if veredicto.get("tiene_noticias") else "sin noticias"
             print(f"    {r['display_symbol']:<11} {veredicto['veredicto']:<10} "
-                  f"convicción {veredicto.get('conviccion', '?')}/5")
+                  f"convicción {veredicto.get('conviccion', '?')}/5 · {marca}")
 
     conjunto = ai.analyze_portfolio(revisados)
     if conjunto:
@@ -319,6 +340,10 @@ def _bloque_orden(r: dict) -> str:
                       f"{v.get('conviccion', '?')}/5")
     if v.get("resumen"):
         lineas.append(f"<i>{_esc(v['resumen'])}</i>")
+    if v.get("noticia_clave"):
+        lineas.append(f"📰 {_esc(v['noticia_clave'])}")
+    if v.get("momento"):
+        lineas.append(f"⏱ {_esc(v['momento'])}")
     if v.get("conflicto"):
         lineas.append(f"⚡ {_esc(v['conflicto'])}")
 
