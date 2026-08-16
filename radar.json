@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-08-16T18:59:41.289901+00:00",
+  "generated_at": "2026-08-16T19:07:26.772938+00:00",
   "universe_size": 180,
   "scanned": 173,
   "candidates": 6,
   "timeframe": "1d",
-  "reviewed": 6,
+  "reviewed": 5,
   "portfolio": {
-    "concentracion": "Existe una alta concentración en materias primas y minería, abarcando cuatro de los seis activos (Plata, Platino, Cobre y Rio Tinto).",
-    "contradicciones": "Hay contradicción al emitir señal de venta en Plata y Rio Tinto mientras se indica compra en Platino y Cobre.",
-    "advertencia": "Operar señales opuestas dentro del sector de metales y minería neutraliza posiciones y multiplica comisiones sin una dirección clara.",
+    "concentracion": "Hay una fuerte concentración en metales y materias primas (Plata, Platino, Cobre y Rio Tinto), acumulando cuatro de las seis señales en este segmento.",
+    "contradicciones": "El sistema emite señales opuestas en el sector de metales: recomienda venta en Plata y Rio Tinto, mientras indica compra en Platino y Cobre.",
+    "advertencia": "Operar estas señales a la vez implica tomar direcciones contrarias en activos altamente vinculados al ciclo de materias primas.",
     "grupos": [
       [
         "PLATA",
@@ -40,16 +40,17 @@
       "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 17.96x el promedio de 20 velas; rsi 72.4 en zona de sobrecompra.",
       "ai": {
         "veredicto": "matizar",
-        "conviccion": 3,
-        "tecnico": "El sistema detecta tendencia bajista con un ratio de actividad extremo de 17.96 y ratio R:R de 3.58. Sin embargo, el RSI en 72.4 muestra niveles elevados que reflejan fuerte presión compradora previa antes de plantear la venta.",
-        "economico": "Sin datos fundamentales por tratarse de una materia prima. Falta contexto macroeconómico sobre demanda industrial, inventarios y tipos de interés para evaluar el activo.",
+        "conviccion": 2,
+        "tecnico": "El sistema propone una venta con ratio 3.58 apoyada en un pico de volumen de 17.96 veces la media. Sin embargo, el RSI está en 72.4 y la fuerza de la tendencia bajista es moderada con 0.76 ATR.",
+        "economico": "Sin datos fundamentales al tratarse de una materia prima. Falta contexto macroeconómico, tipos de interés y demanda industrial para evaluar el valor subyacente.",
         "conflicto": null,
         "riesgos": [
-          "RSI en 72.4 evidencia impulso alcista reciente que puede invalidar la señal de venta.",
-          "Ausencia total de datos fundamentales o macroeconómicos en el reporte para validar la dirección."
+          "RSI en 72.4 refleja presión compradora reciente en contradicción con una señal de venta",
+          "Pico de volumen inusualmente alto (17.96) que puede representar absorción o continuidad del impulso alcista diario (+0.36%)",
+          "Fuerza de tendencia bajista débil (0.76 ATR)"
         ],
-        "invalidaria": "Un cierre diario por encima del nivel de stop loss fijado en 67.92.",
-        "resumen": "Señal de venta técnica con buen R:R y volumen extremo, pero condicionada por un RSI en 72.4 y falta de contexto fundamental.",
+        "invalidaria": "Un cierre diario por encima del nivel de stop loss en 67.92.",
+        "resumen": "Señal de venta con ratio favorable y volumen extremo, pero debilitada por un RSI en 72.4 y sin respaldo fundamental.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": false
       }
@@ -76,16 +77,15 @@
       "ai": {
         "veredicto": "descartar",
         "conviccion": 4,
-        "tecnico": "El sistema marca venta con repunte de volumen, pero la fuerza de la tendencia bajista es mínima (0.21 ATR). El RSI se mantiene en 57.6, sin reflejar debilidad ni presión vendedora pronunciada.",
-        "economico": "La empresa muestra alta rentabilidad con un ROE del 19.31% y margen neto del 19.58%. El beneficio crece al 46.9% interanual y el precio objetivo de consenso (7526.8) se sitúa por encima del precio actual.",
-        "conflicto": "El setup técnico propone abrir cortos mientras los fundamentales reflejan sólido crecimiento de beneficios, baja deuda y valoraciones atractivas.",
+        "tecnico": "El sistema detecta una señal de venta con fuerte volumen inusual, pero la fuerza de la tendencia bajista es débil (0.21 ATR). Además, el RSI se ubica en 57.6, lo cual no refleja debilidad técnica inmediata.",
+        "economico": "Los fundamentales son sólidos: los beneficios crecieron un 46.9%, el margen neto roza el 19.6% y el endeudamiento es bajo (31.9%). El precio objetivo de consenso (7526.8) se sitúa por encima del precio actual de entrada.",
+        "conflicto": "La señal técnica propone vender en corto una empresa rentable, con crecimiento sólido de beneficios y cotizando por debajo del objetivo medio de los analistas.",
         "riesgos": [
-          "Fuerza de tendencia bajista casi nula (0.21) que no confirma continuidad a la baja.",
-          "Precio objetivo de los analistas fijado en 7526.84, por encima del stop loss establecido en 7410.68.",
-          "RSI en 57.6 situado en terreno neutral-alcista a pesar de la señal de venta."
+          "Fuerza de tendencia muy baja (0.21) que expone a giros rápidos en contra del trade.",
+          "Riesgo de rebote alcista impulsado por buenos múltiplos fundamentales (PER 12.9 y márgenes elevados)."
         ],
-        "invalidaria": "Un cierre diario por encima del stop loss de 7410.68 o la superación de la media móvil inmediata.",
-        "resumen": "Descartar la venta: fundamentales de sólido crecimiento y baja deuda chocan con una señal técnica de tendencia muy débil.",
+        "invalidaria": "Un cierre por encima del stop loss fijado en 7410.68 o la superación de la media móvil que marca la tendencia.",
+        "resumen": "Se descarta la venta por fuerte contradicción entre la señal bajista y unos fundamentales financieros muy sólidos.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": true
       }
@@ -108,23 +108,7 @@
       "activity_label": "volumen",
       "volume_based": true,
       "score": 87.0,
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.8x el promedio de 20 velas; rsi 76.4 en zona de sobrecompra.",
-      "ai": {
-        "veredicto": "matizar",
-        "conviccion": 3,
-        "tecnico": "El sistema detecta una tendencia bajista de fondo y propone venta con un RSI en sobrecompra de 76.4 y ratio R/R de 2.83. No obstante, la última sesión registró un avance del 8.26% con pico de volumen que presiona la estructura.",
-        "economico": "La compañía no es rentable, registrando margen neto de -26.64% y flujo de caja libre negativo de -114.87M. En contraste, los ingresos crecen al 309.8% y los 8 analistas registrados mantienen consenso de compra fuerte con objetivo medio en 29.5.",
-        "conflicto": "El sistema técnico emite señal de venta mientras el consenso de analistas marca compra fuerte y los ingresos crecen a triple dígito.",
-        "riesgos": [
-          "Un 27.14% del free float vendido en corto expone la operativa a un estrangulamiento de posiciones cortas tras una subida del 8.26% con volumen.",
-          "Elevada volatilidad del activo representada por una beta de 1.829.",
-          "Divergencia entre la señal de venta y el precio objetivo de analistas situado en 29.5."
-        ],
-        "invalidaria": "Un cierre de precio por encima del nivel de stop loss fijado en 21.74.",
-        "resumen": "Señal de venta fundamentada en pérdidas financieras y sobrecompra técnica, pero condicionada por un alto porcentaje de cortos y fuerte consenso comprador.",
-        "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": true
-      }
+      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.8x el promedio de 20 velas; rsi 76.4 en zona de sobrecompra."
     },
     {
       "symbol": "PL=F",
@@ -140,24 +124,24 @@
       "stop_loss": 1702.39,
       "rr_ratio": 3.64,
       "rsi": 67.7,
-      "activity_ratio": 19.84,
+      "activity_ratio": 19.81,
       "activity_label": "volumen",
       "volume_based": true,
       "score": 86.5,
-      "reason": "Media de 20 sobre la de 50 (tendencia alcista); volumen 19.84x el promedio de 20 velas.",
+      "reason": "Media de 20 sobre la de 50 (tendencia alcista); volumen 19.81x el promedio de 20 velas.",
       "ai": {
         "veredicto": "matizar",
-        "conviccion": 2,
-        "tecnico": "El setup alcista muestra un pico de actividad extremo (19.84 veces el volumen habitual) y un ratio R/R favorable de 3.64. No obstante, la fuerza de la tendencia es marginal (0.19 ATR) y el RSI en 67.7 se aproxima a zona de sobrecompra.",
-        "economico": "Sin datos fundamentales por ser un contrato de futuros sobre materia prima. Falta información sobre oferta, demanda industrial y contexto macroeconómico para respaldar el movimiento del activo.",
+        "conviccion": 3,
+        "tecnico": "Presenta tendencia alcista con un pico de volumen inusual de 19.81x y una relación riesgo/beneficio de 3.64. Sin embargo, la fuerza de la tendencia es reducida (0.19 ATR) y el RSI está en 67.7, próximo a zona de sobrecompra.",
+        "economico": "No hay datos fundamentales por tratarse de una materia prima y no una empresa cotizada. Falta información sobre la oferta, demanda y contexto macroeconómico del mercado físico para evaluar el trasfondo.",
         "conflicto": null,
         "riesgos": [
-          "Fuerza de la tendencia casi nula (0.19 ATR), lo que indica medias móviles prácticamente pegadas",
-          "RSI diario en 67.7, cercano a niveles de sobrecompra técnica",
-          "Stop loss fijado en 1702.39, muy alejado del soporte estructural reportado en 1530.7"
+          "RSI en 67.7 acercándose a niveles de sobrecompra",
+          "Fuerza de tendencia débil medida en 0.19 ATR",
+          "Ausencia total de datos fundamentales para contrastar el impulso técnico"
         ],
-        "invalidaria": "Un retroceso que perfore el stop loss diario en 1702.39.",
-        "resumen": "Señal de compra con volumen atípico pero con una tendencia de base muy débil y sin soporte fundamental disponible.",
+        "invalidaria": "Un retroceso del precio por debajo del stop loss en 1702.39",
+        "resumen": "Setup técnico alcista con volumen atípico y buen ratio R/B, pero condicionado por un RSI alto y falta de datos fundamentales.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": false
       }
@@ -184,16 +168,15 @@
       "ai": {
         "veredicto": "matizar",
         "conviccion": 3,
-        "tecnico": "Tendencia alcista con un fuerte pico de volumen de 11.75 veces lo habitual. Sin embargo, el precio entra en 6.61 muy cerca de la resistencia en 6.73 y con un RSI de 68.9 cercano a sobrecompra.",
-        "economico": "Sin datos fundamentales por tratarse de una materia prima. Falta contexto sobre oferta, demanda industrial, inventarios y ciclo macroeconómico para respaldar el movimiento.",
+        "tecnico": "Presenta tendencia alcista con un fuerte pico de volumen de 11.75 veces el promedio. Sin embargo, el precio actual (6.61) opera muy cerca de la resistencia en 6.73, con un RSI en 68.9 y un objetivo en 6.90 que requiere romper dicha barrera.",
+        "economico": "Sin datos fundamentales al tratarse de una materia prima. Se carece de información sobre oferta, demanda global e inventarios para contrastar el movimiento del precio.",
         "conflicto": null,
         "riesgos": [
-          "La resistencia en 6.73 está a solo 0.12 del precio de entrada y antes del objetivo de 6.90",
-          "RSI en 68.9 roza zona de sobrecompra tras un fuerte impulso de volumen",
-          "Ausencia total de datos fundamentales o contexto de oferta y demanda"
+          "El objetivo de ganancia en 6.90 se ubica por encima de la resistencia técnica de 6.73.",
+          "El indicador RSI se encuentra en 68.9, próximo a zona de sobrecompra."
         ],
-        "invalidaria": "Un retroceso por debajo del nivel de stop loss fijado en 6.45.",
-        "resumen": "Tendencia y volumen acompañan, pero la cercanía a la resistencia de 6.73 y el RSI en 68.9 exigen cautela.",
+        "invalidaria": "Pérdida del nivel de stop loss fijado en 6.45.",
+        "resumen": "Setup alcista respaldado por volumen extraordinario, pero condicionado por la cercanía inmediata a la resistencia en 6.73.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": false
       }
@@ -220,15 +203,15 @@
       "ai": {
         "veredicto": "matizar",
         "conviccion": 3,
-        "tecnico": "La tendencia diaria es alcista y el volumen duplica su promedio habitual con un RSI neutral en 45.0. No obstante, el take profit fijado en 572.07 se ubica por encima de la resistencia técnica situada en 562.81.",
-        "economico": "Muestra un sólido crecimiento en beneficios (138.9%) e ingresos (48.2%), acompañado de un EV/EBITDA bajo de 3.44 y flujo de caja libre positivo. Como contraparte, el margen neto es ajustado (2.55%) y la deuda sobre fondos propios alcanza el 95.12%.",
+        "tecnico": "La tendencia diaria es alcista y el volumen duplica la media habitual con un RSI neutral en 45.0. No obstante, el take profit establecido en 572.07 queda por encima del nivel de resistencia calculado en 562.81.",
+        "economico": "Muestra un crecimiento de ingresos del 48.2% y de beneficio del 138.9%, junto a una sólida generación de caja libre. Como contrapartida, presenta una deuda sobre fondos propios del 95.12% y un margen neto estrecho del 2.55%.",
         "conflicto": null,
         "riesgos": [
-          "Take profit establecido por encima de la resistencia clave de 562.81",
-          "Margen neto estrecho del 2.55% frente a una deuda sobre fondos propios del 95.12%"
+          "El take profit en 572.07 requiere perforar la resistencia de 562.81 sin consolidación previa.",
+          "El ratio de deuda sobre fondos propios es del 95.12% en un entorno de margen neto ajustado (2.55%)."
         ],
-        "invalidaria": "Pérdida del nivel de stop loss en 495.58 o rechazo explícito en la resistencia de 562.81.",
-        "resumen": "Entrada técnica alcista respaldada por volumen y crecimiento operativo, pero con un objetivo situado más allá de la resistencia inmediata.",
+        "invalidaria": "Un retroceso del precio que alcance o perfore el stop loss fijado en 495.58.",
+        "resumen": "Señal con respaldo fundamental y volumen técnico, pero con un objetivo situado más allá de la resistencia inmediata.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": true
       }
