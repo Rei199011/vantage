@@ -262,6 +262,13 @@ def _system_status(results: list) -> list:
             "pill_class": "local",
         },
         {
+            "name": "Registro de señales",
+            "pulse": "ok" if _journal_stats().get("cerradas") else "info",
+            "rows": _journal_rows(),
+            "pill": "Medición en curso",
+            "pill_class": "read",
+        },
+        {
             "name": "Ejecución",
             "pulse": "ok",
             "rows": [
@@ -290,6 +297,15 @@ def _radar_rows() -> list:
     ]
 
 
+def _journal_stats() -> dict:
+    """Métricas del registro de señales, si ya hay alguna."""
+    try:
+        import journal
+        return journal.stats()
+    except Exception:
+        return {}
+
+
 def _ai_ok() -> bool:
     import ai
     return ai.available()
@@ -305,6 +321,22 @@ def _ai_rows() -> list:
         ["Modelo", ai.GEMINI_MODEL],
         ["Revisados", f"{r.get('reviewed', 0)} candidatos del radar"],
         ["Alcance", "contraste técnico y económico"],
+    ]
+
+
+def _journal_rows() -> list:
+    s = _journal_stats()
+    if not s.get("total"):
+        return [["Estado", "sin señales anotadas"],
+                ["Objetivo", "medir si las señales aciertan"]]
+    if not s.get("cerradas"):
+        return [["Anotadas", f"{s['total']}"],
+                ["Abiertas", f"{s['abiertas']}"],
+                ["Cerradas", "ninguna todavía"]]
+    return [
+        ["Cerradas", f"{s['cerradas']} de {s['total']}"],
+        ["Esperanza", f"{s['esperanza_r']:+.2f} R por operación"],
+        ["Acierto", f"{s['tasa_acierto']}%"],
     ]
 
 
@@ -335,6 +367,7 @@ def build_payload(results: list) -> dict:
         "events": events,
         "brief": brief,
         "radar": radar,
+        "journal": _journal_stats(),
         "status": _system_status(results),
     }
 

@@ -12,8 +12,9 @@ Uso:
     python bot.py              # una pasada: avisos + actualiza el panel, y sale
     python bot.py --daemon     # queda corriendo, revisa cada N minutos
     python bot.py --radar      # escanea el universo amplio y manda el resumen diario
+    python bot.py --informe    # cierra las señales vencidas y manda las métricas
 
-Comandos en el chat: /revisar y /estado (solo responde a tu chat).
+Comandos en el chat: /revisar, /estado y /registro (solo responde a tu chat).
 """
 
 import os
@@ -29,6 +30,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 import market
 import universe
 import scanner
+import journal
 from analyzer import analyze, reason_text
 from publish import publish, load_previous_signals
 
@@ -191,6 +193,14 @@ async def cmd_estado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
+async def cmd_registro(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/registro — cómo van las señales pasadas."""
+    if not _is_owner(update):
+        return
+    await update.message.reply_text(
+        journal.format_report(journal.stats()), parse_mode=ParseMode.HTML)
+
+
 async def cmd_revisar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/revisar — fuerza una ronda ahora y devuelve un resumen."""
     if not _is_owner(update):
@@ -235,6 +245,15 @@ async def run_round(bot: Bot):
         await send_alert(bot, r, veredictos)
         await asyncio.sleep(0.4)   # no atropellar a Yahoo
 
+    # El registro se escribe SIEMPRE, se avise o no. Lo que se mide es la
+    # señal, no si te llegó el mensaje.
+    try:
+        nuevas = journal.record(results)
+        if nuevas:
+            print(f"  {nuevas} señal(es) anotadas en el registro")
+    except Exception as e:
+        print(f"⚠ No se pudo anotar en el registro: {e}")
+
     try:
         publish(results, push=AUTO_PUSH)
     except Exception as e:
@@ -243,9 +262,32 @@ async def run_round(bot: Bot):
     return results
 
 
+async def run_informe():
+    """Cierra las señales vencidas y manda las métricas acumuladas."""
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+
+    print("Actualizando el registro de señales…")
+    cerradas = journal.update()
+    print(f"{cerradas} señal(es) cerradas en esta pasada")
+
+    s = journal.stats()
+    await bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=journal.format_report(s),
+        parse_mode=ParseMode.HTML,
+    )
+
+
 async def run_radar():
     """Escanea el universo amplio, asciende los mejores y manda el resumen."""
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
+
+    # Antes de buscar señales nuevas, cerrar las viejas que ya se resolvieron.
+    print("Actualizando el registro de señales…")
+    try:
+        journal.update()
+    except Exception as e:
+        print(f"⚠ No se pudo actualizar el registro: {e}")
 
     print(f"Escaneando {len(universe.SYMBOLS)} simbolos...")
     resultados = scanner.scan()
@@ -279,6 +321,7 @@ def run_daemon():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("estado", cmd_estado))
     app.add_handler(CommandHandler("revisar", cmd_revisar))
+    app.add_handler(CommandHandler("registro", cmd_registro))
 
     async def periodic_check(context: ContextTypes.DEFAULT_TYPE):
         await run_round(context.bot)
@@ -302,5 +345,7 @@ if __name__ == "__main__":
         run_daemon()
     elif "--radar" in sys.argv:
         asyncio.run(run_radar())
+    elif "--informe" in sys.argv:
+        asyncio.run(run_informe())
     else:
         asyncio.run(run_once())

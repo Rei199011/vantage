@@ -1,0 +1,55 @@
+# Vantage — informe semanal del registro de señales.
+#
+# Cierra las señales que ya tocaron objetivo o stop, calcula las métricas
+# acumuladas y te las manda. Es lo que responde a la única pregunta que
+# importa: ¿estas señales tienen ventaja o no?
+#
+# El registro se alimenta solo en cada ronda de vantage.yml; esto solo mide.
+
+name: Informe
+
+on:
+  schedule:
+    # Viernes a las 20:30 UTC, con Wall Street ya cerrado.
+    - cron: '30 20 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vantage
+  cancel-in-progress: false
+
+jobs:
+  medir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Bajar el repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Medir el registro
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python bot.py --informe
+
+      - name: Publicar el registro
+        run: |
+          git config user.name  "Vantage"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add journal.json
+          git diff --staged --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Registro — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
