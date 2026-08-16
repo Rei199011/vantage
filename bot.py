@@ -43,9 +43,14 @@ CHECK_INTERVAL_MINUTES = 30
 # GitHub Pages muestre datos frescos. Genera un commit por ronda.
 AUTO_PUSH = os.getenv("PANEL_AUTO_PUSH", "false").strip().lower() in ("1", "true", "yes")
 
-# Solo se avisa de estas señales. OBSERVAR llenaría el chat de ruido;
-# igual aparece en el panel.
-ALERT_ON = {"ENTRADA", "PRECAUCION"}
+# Solo llegan a Telegram las órdenes reales. PRECAUCION y OBSERVAR siguen
+# calculándose y se ven en el panel, pero no interrumpen: no son operaciones.
+ALERT_ON = {"ENTRADA"}
+
+# Si la revisión con IA descartó un símbolo en el radar de la mañana, no se
+# avisa de él aunque la vela horaria confirme. Ponelo en False para recibir
+# todas las entradas técnicas, revisadas o no.
+RESPETAR_VEREDICTO = True
 
 # Evita repetir la misma alerta en cada ronda: {símbolo: última señal avisada}.
 # Se siembra desde data.json, así el estado sobrevive a reinicios y funciona
@@ -54,11 +59,30 @@ _last_signal: dict[str, str] = {}
 _seeded = False
 
 
-def _escape(text: str) -> str:
-    """Markdown clásico de Telegram: escapamos lo que rompe el formato."""
-    for ch in ("_", "*", "`", "["):
-        text = text.replace(ch, "\\" + ch)
-    return text
+def _esc(texto) -> str:
+    """
+    Telegram en modo HTML solo exige escapar estos tres caracteres.
+
+    Se usa HTML y no Markdown porque el Markdown clásico se rompe con
+    cualquier guion bajo o asterisco que venga en un nombre de empresa,
+    y el mensaje entero falla al enviarse.
+    """
+    return (str(texto).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _veredictos() -> dict:
+    """{símbolo: veredicto} de la revisión del radar de esta mañana."""
+    import json
+    import os
+    if not os.path.exists("radar.json"):
+        return {}
+    try:
+        with open("radar.json", encoding="utf-8") as f:
+            datos = json.load(f)
+        return {r["symbol"]: (r.get("ai") or {}).get("veredicto")
+                for r in datos.get("top", []) if "symbol" in r}
+    except Exception:
+        return {}
 
 
 def _is_owner(update: Update) -> bool:
@@ -72,36 +96,43 @@ def _is_owner(update: Update) -> bool:
     return bool(chat and str(chat.id) == str(TELEGRAM_CHAT_ID))
 
 
-def format_message(r: dict) -> str:
-    emoji = {"ENTRADA": "🟡", "PRECAUCION": "🔴", "OBSERVAR": "🔵"}.get(r["signal"], "⚪")
-    side = {"buy": "compra", "sell": "venta"}.get(r["direction"], "sin dirección")
-    origen = " 📡" if market.is_promoted(r["symbol"]) else ""
+def format_message(r: dict, veredicto: dict | None = None) -> str:
+    """Una orden, tal como la vas a leer en el móvil."""
+    compra = r["direction"] == "buy"
+    icono = "🟢" if compra else "🔴"
+    lado = "COMPRA" if compra else "VENTA"
+    radar = " 📡" if market.is_promoted(r["symbol"]) else ""
 
-    lines = [
-        f"{emoji} *{_escape(r['display_symbol'])}*{origen} — {r['signal']} ({side})",
-        f"Precio: {r['price']}  ·  {r['change_pct']:+}% sesión  ·  RSI {r['rsi']}",
+    lineas = [
+        f"{icono} <b>{lado} · {_esc(r['display_symbol'])}</b>{radar}",
+        f"<i>{_esc(r['name'])}</i>",
+        "",
+        "<code>"
+        f"Entrada   {r['entry']}\n"
+        f"Objetivo  {r['take_profit']}\n"
+        f"Stop      {r['stop_loss']}\n"
+        f"R/B       1 : {r['rr_ratio']}"
+        "</code>",
+        "",
     ]
-    if r["activity_spike"]:
-        etiqueta = "Volumen" if r["volume_based"] else "Rango"
-        lines.append(f"⚠ {etiqueta} {r['activity_ratio']}x lo habitual")
 
-    if r["direction"]:
-        lines += [
-            "",
-            f"Entrada: {r['entry']}",
-            f"Take profit: {r['take_profit']}",
-            f"Stop loss: {r['stop_loss']}",
-            f"R/B: 1 : {r['rr_ratio']}",
-        ]
+    actividad = "volumen" if r["volume_based"] else "rango"
+    lineas.append(f"<i>Precio {r['price']} · {r['change_pct']:+}% sesión · "
+                  f"RSI {r['rsi']} · {actividad} {r['activity_ratio']}×</i>")
 
-    lines += ["", f"_{_escape(reason_text(r))}_"]
-    if market.is_promoted(r["symbol"]):
-        lines.append(f"_Lo trajo el radar: {_escape(r['name'])}. No esta en tu lista fija._")
-    return "\n".join(lines)
+    if veredicto and veredicto.get("resumen"):
+        marca = "✅" if veredicto.get("veredicto") == "respaldar" else "⚠️"
+        lineas.append(f"\n{marca} <i>{_esc(veredicto['resumen'])}</i>")
+
+    return "\n".join(lineas)
 
 
-async def send_alert(bot: Bot, r: dict):
+async def send_alert(bot: Bot, r: dict, veredictos: dict):
     if "error" in r or r["signal"] not in ALERT_ON:
+        return
+
+    if RESPETAR_VEREDICTO and veredictos.get(r["symbol"]) == "descartar":
+        print(f"  {r['display_symbol']}: entrada omitida, la revisión la descartó")
         return
 
     if _last_signal.get(r["symbol"]) == r["signal"]:
@@ -110,9 +141,25 @@ async def send_alert(bot: Bot, r: dict):
 
     await bot.send_message(
         chat_id=TELEGRAM_CHAT_ID,
-        text=format_message(r),
-        parse_mode=ParseMode.MARKDOWN,
+        text=format_message(r, _detalle_ia(r["symbol"])),
+        parse_mode=ParseMode.HTML,
     )
+
+
+def _detalle_ia(symbol: str) -> dict | None:
+    """El veredicto completo de ese símbolo, si el radar lo revisó."""
+    import json
+    import os
+    if not os.path.exists("radar.json"):
+        return None
+    try:
+        with open("radar.json", encoding="utf-8") as f:
+            for r in json.load(f).get("top", []):
+                if r.get("symbol") == symbol:
+                    return r.get("ai")
+    except Exception:
+        pass
+    return None
 
 
 # --------------------------------------------------------------- comandos
@@ -126,7 +173,7 @@ async def cmd_estado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     activos = market.active_symbols()
     fijos = len(market.WATCHLIST)
     lines = [
-        "*Vantage* · solo recomendaciones, sin ejecución",
+        "<b>Vantage</b> · solo recomendaciones, sin ejecución",
         f"Cada hora: {len(activos)} símbolos ({fijos} fijos + "
         f"{len(activos) - fijos} del radar), velas de {market.YF_INTERVAL}",
         f"Radar diario: {len(universe.SYMBOLS)} símbolos, velas de 1d",
@@ -137,9 +184,9 @@ async def cmd_estado(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lines.append("")
         lines.append("Últimas señales avisadas:")
         for sym, sig in _last_signal.items():
-            lines.append(f"· {_escape(market.pretty_symbol(sym))}: {sig}")
+            lines.append(f"· {_esc(market.pretty_symbol(sym))}: {sig}")
 
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def cmd_revisar(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -155,15 +202,15 @@ async def cmd_revisar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if entradas:
         resumen = "\n".join(
-            f"· {_escape(r['display_symbol'])}: {r['direction'] == 'buy' and 'compra' or 'venta'} "
+            f"· <b>{_esc(r['display_symbol'])}</b> {'compra' if r['direction'] == 'buy' else 'venta'} "
             f"en {r['entry']} (R/B 1:{r['rr_ratio']})" for r in entradas
         )
-        texto = f"*{len(entradas)} señal(es) de entrada*\n{resumen}"
+        texto = f"<b>{len(entradas)} operación(es) disponible(s)</b>\n{resumen}"
     else:
         texto = (f"Ninguno de los {len(ok)} símbolos cumple las condiciones de entrada "
                  "ahora mismo. Sin señales es un resultado válido.")
 
-    await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text(texto, parse_mode=ParseMode.HTML)
 
 
 # --------------------------------------------------------------- rondas
@@ -178,11 +225,12 @@ async def run_round(bot: Bot):
         if _last_signal:
             print(f"Estado recuperado: {len(_last_signal)} señales de la ronda anterior")
 
+    veredictos = _veredictos()
     results = []
     for symbol in market.active_symbols():
         r = analyze(symbol)
         results.append(r)
-        await send_alert(bot, r)
+        await send_alert(bot, r, veredictos)
         await asyncio.sleep(0.4)   # no atropellar a Yahoo
 
     try:
@@ -206,7 +254,7 @@ async def run_radar():
     await bot.send_message(
         chat_id=TELEGRAM_CHAT_ID,
         text=scanner.format_digest(radar),
-        parse_mode=ParseMode.MARKDOWN,
+        parse_mode=ParseMode.HTML,
     )
 
 

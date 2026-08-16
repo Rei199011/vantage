@@ -207,9 +207,25 @@ def _slim(r: dict) -> dict:
     return {k: r[k] for k in campos if k in r}
 
 
+def descartado(r: dict) -> bool:
+    """¿La revisión con IA rechazó este candidato?"""
+    return (r.get("ai") or {}).get("veredicto") == "descartar"
+
+
+def accionables(cands: list) -> list:
+    """
+    Los que llegan a Telegram como orden.
+
+    Sin IA son todos los candidatos. Con IA, los que no fueron descartados:
+    no tiene sentido avisarte de una compra que la propia revisión rechazó.
+    """
+    return [r for r in cands if not descartado(r)]
+
+
 def save(resultados: list, conjunto: dict | None = None) -> dict:
     cands = candidates(resultados)
-    ascendidos = [r["symbol"] for r in cands[:PROMOTE_TOP]]
+    # Solo ascienden a seguimiento horario los que sobrevivieron a la revisión.
+    ascendidos = [r["symbol"] for r in accionables(cands)[:PROMOTE_TOP]]
 
     radar = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -234,43 +250,79 @@ def save(resultados: list, conjunto: dict | None = None) -> dict:
 
 
 def format_digest(radar: dict) -> str:
-    """Resumen para Telegram."""
-    top = radar["top"]
-    cab = (f"📡 *Radar diario* — {radar['scanned']} de {radar['universe_size']} "
-           f"símbolos revisados")
+    """
+    Resumen para Telegram, en HTML.
+
+    Solo se detallan las operaciones accionables. Lo descartado y lo que se
+    queda en observación va en una línea al final: sirve para saber que el
+    sistema miró, sin convertir el mensaje en un informe.
+    """
+    top = radar.get("top", [])
+    fecha = datetime.now(timezone.utc).strftime("%d/%m")
+
+    cab = (f"📡 <b>RADAR</b> · {fecha}\n"
+           f"<i>{radar['scanned']} de {radar['universe_size']} símbolos revisados</i>")
 
     if not top:
-        return (f"{cab}\n\nNingún candidato cumple hoy las tres condiciones de entrada. "
-                "Sin señales es un resultado válido.")
+        return (f"{cab}\n\nSin candidatos hoy: ninguno cumple las tres condiciones "
+                f"de entrada. Es un resultado válido, no un fallo.")
 
-    marca = {"respaldar": "\u2705", "matizar": "\u26a0\ufe0f", "descartar": "\u274c"}
+    ordenes = [r for r in top if not descartado(r)][:PROMOTE_TOP]
+    rechazados = [r for r in top if descartado(r)]
 
-    lineas = [cab, f"{radar['candidates']} candidatos \u00b7 los mejores:\n"]
-    for i, r in enumerate(top[:PROMOTE_TOP], 1):
-        lado = "compra" if r["direction"] == "buy" else "venta"
-        v = r.get("ai") or {}
+    if not ordenes:
+        bloques = [cab, "", "<b>Ninguna operación accionable hoy.</b>",
+                   "Todos los candidatos fueron descartados en la revisión."]
+    else:
+        plural = "operación" if len(ordenes) == 1 else "operaciones"
+        bloques = [cab, "", f"<b>{len(ordenes)} {plural}</b>", ""]
+        for r in ordenes:
+            bloques.append(_bloque_orden(r))
 
-        cabecera = f"{i}. *{r['display_symbol']}* — {lado} · {r['name']}"
-        if v.get("veredicto"):
-            cabecera += (f"\n   {marca.get(v['veredicto'], '')} {v['veredicto'].upper()}"
-                         f" · convicción {v.get('conviccion', '?')}/5")
-
-        lineas.append(
-            f"{cabecera}\n"
-            f"   {r['entry']} → {r['take_profit']} · stop {r['stop_loss']} · "
-            f"R/B 1:{r['rr_ratio']}"
-        )
-        if v.get("resumen"):
-            lineas.append(f"   _{v['resumen']}_")
-        if v.get("conflicto"):
-            lineas.append(f"   \u26a1 {v['conflicto']}")
+    if rechazados:
+        nombres = ", ".join(r["display_symbol"] for r in rechazados)
+        bloques.append(f"🚫 <i>Descartados en la revisión: {nombres}</i>")
 
     conjunto = radar.get("portfolio") or {}
     if conjunto.get("advertencia"):
-        lineas.append(f"\n\U0001F9ED *Visión de conjunto*\n{conjunto['advertencia']}")
+        bloques.append(f"\n⚠️ <b>Conjunto</b> — {_esc(conjunto['advertencia'])}")
 
-    lineas.append("\n_Ascendidos a seguimiento horario. Los avisos de entrada "
-                  "llegan cuando la vela de una hora lo confirme._")
+    return "\n".join(bloques)
+
+
+def _esc(t) -> str:
+    """Telegram en modo HTML solo exige escapar estos tres caracteres."""
+    return (str(t).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _bloque_orden(r: dict) -> str:
+    compra = r["direction"] == "buy"
+    icono = "🟢" if compra else "🔴"
+    lado = "COMPRA" if compra else "VENTA"
+
+    lineas = [
+        f"{icono} <b>{lado} · {_esc(r['display_symbol'])}</b>",
+        f"<i>{_esc(r['name'])}</i>",
+        "",
+        "<code>"
+        f"Entrada   {r['entry']}\n"
+        f"Objetivo  {r['take_profit']}\n"
+        f"Stop      {r['stop_loss']}\n"
+        f"R/B       1 : {r['rr_ratio']}"
+        "</code>",
+    ]
+
+    v = r.get("ai") or {}
+    if v.get("veredicto"):
+        marca = "✅" if v["veredicto"] == "respaldar" else "⚠️"
+        lineas.append(f"{marca} {v['veredicto'].capitalize()} · convicción "
+                      f"{v.get('conviccion', '?')}/5")
+    if v.get("resumen"):
+        lineas.append(f"<i>{_esc(v['resumen'])}</i>")
+    if v.get("conflicto"):
+        lineas.append(f"⚡ {_esc(v['conflicto'])}")
+
+    lineas.append("─────────────")
     return "\n".join(lineas)
 
 
