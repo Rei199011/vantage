@@ -11,5 +11,7 @@ yfinance>=0.2.40
 # y el modo --daemon no puede programar las revisiones periódicas.
 python-telegram-bot[job-queue]>=20.0
 
-# Opcional: solo si querés el resumen diario escrito por Claude.
-# anthropic>=0.40
+# Opcional: revisión con IA (editorial del panel + análisis de los candidatos).
+# Sin esto Vantage funciona igual, con el resumen generado por reglas.
+# La clave se saca gratis en https://aistudio.google.com
+google-genai>=1.0
