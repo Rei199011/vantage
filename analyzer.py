@@ -92,7 +92,7 @@ def _sparkline(df, points=24):
 
 
 def analyze(symbol: str) -> dict:
-    """Analiza un símbolo y devuelve la recomendación."""
+    """Trae las velas de un símbolo y lo analiza."""
     try:
         df = market.get_candles(symbol)
     except market.MarketDataUnavailable as e:
@@ -101,6 +101,18 @@ def analyze(symbol: str) -> dict:
         return {"symbol": symbol, "error": "Falta yfinance: pip install -r requirements.txt"}
     except Exception as e:
         return {"symbol": symbol, "error": f"No se pudieron traer velas: {e}"}
+
+    return analyze_frame(df, symbol)
+
+
+def analyze_frame(df, symbol: str, timeframe: str = "60m") -> dict:
+    """
+    Analiza velas ya descargadas.
+
+    Separado de analyze() para que el escáner, que baja cientos de símbolos
+    por lotes en una sola petición, use exactamente el mismo cálculo.
+    """
+    df = df.copy()
 
     min_bars = max(ATR_PERIOD, RSI_PERIOD, 50) + 5
     if len(df) < min_bars:
@@ -137,6 +149,12 @@ def analyze(symbol: str) -> dict:
 
     trend_up = bool(last["SMA20"] > last["SMA50"])
     trend_down = bool(last["SMA20"] < last["SMA50"])
+
+    # Cuán separadas están las medias, medido en ATR. Sirve para comparar la
+    # fuerza de la tendencia entre instrumentos que se mueven a escalas distintas:
+    # 20 puntos en el Nasdaq y 20 pips en el euro no son comparables en bruto.
+    trend_strength = (round(abs(float(last["SMA20"]) - float(last["SMA50"])) / current_atr, 2)
+                      if current_atr > 0 else 0.0)
     overbought = current_rsi >= 70
     oversold = current_rsi <= 30
 
@@ -190,11 +208,13 @@ def analyze(symbol: str) -> dict:
         "volume_based": volume_based,
         "trend_up": trend_up,
         "trend_down": trend_down,
+        "trend_strength": trend_strength,
         "support": r(support),
         "resistance": r(resistance),
         "direction": direction,
         "signal": signal,
         "spark": _sparkline(df),
+        "timeframe": timeframe,
         "last_candle": df.index[-1].isoformat(),
     }
 

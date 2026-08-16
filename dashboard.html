@@ -318,6 +318,71 @@
     padding:5px 9px 0 0;
   }
 
+  /* ============ Radar: tabla de destacados ============ */
+  .radar{
+    max-width:1220px;
+    margin:0 auto;
+    padding:24px 34px 30px;
+    border-top:3px double var(--ink);
+  }
+  .radar-note{font-size:14.5px; color:var(--muted); margin:10px 0 4px; max-width:72ch;}
+  table.rank{width:100%; border-collapse:collapse; margin-top:12px;}
+  table.rank th{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    text-align:left;
+    padding:0 10px 6px 0;
+    border-bottom:1px solid var(--ink);
+    white-space:nowrap;
+  }
+  table.rank th.num, table.rank td.num{text-align:right; padding-right:0;}
+  table.rank td{
+    padding:9px 10px 9px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:14.5px;
+    vertical-align:baseline;
+  }
+  table.rank tr:last-child td{border-bottom:none;}
+  table.rank td.pos{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    width:26px;
+  }
+  table.rank td.tk{font-family:'IBM Plex Mono', monospace; font-weight:600; white-space:nowrap;}
+  table.rank td.co{color:var(--muted); font-size:13.5px;}
+  table.rank td.num{font-family:'IBM Plex Mono', monospace; font-size:13.5px; white-space:nowrap;}
+  .dir{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border:1px solid currentColor;
+    white-space:nowrap;
+  }
+  .dir.buy{background:var(--bull); border-color:var(--bull); color:var(--paper);}
+  .dir.sell{background:var(--bear); border-color:var(--bear); color:var(--paper);}
+  .promoted{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:8.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--mark);
+    border:1px solid var(--mark);
+    padding:1px 4px;
+    margin-left:6px;
+  }
+  @media(max-width:640px){
+    .radar{padding-left:22px; padding-right:22px;}
+    table.rank td.co, table.rank th.co{display:none;}
+  }
+
   /* ============ Colofón ============ */
   .colophon{
     max-width:1220px;
@@ -459,6 +524,15 @@
     <div class="leader-body" id="leaderBody">Cargando…</div>
   </section>
 
+  <section class="radar" id="radarSection" hidden>
+    <div class="head-rule">
+      <h2>Radar</h2>
+      <span class="label" id="radarCount">—</span>
+    </div>
+    <p class="radar-note" id="radarNote"></p>
+    <div id="radarTable"></div>
+  </section>
+
   <section class="colophon">
     <div class="head-rule">
       <h2>Estado del sistema</h2>
@@ -519,6 +593,7 @@
     const stroke = up ? "#1B5E43" : "#9E2B21";
 
     const flags = `<span class="flag">${esc(r.asset_class)}</span>`
+      + (r.promoted ? `<span class="flag analysis">Del radar</span>` : "")
       + (r.activity_spike ? `<span class="flag analysis">${esc(r.volume_based ? "Volumen" : "Rango")} ${esc(r.activity_ratio)}×</span>` : "");
 
     const levels = r.direction ? `
@@ -604,6 +679,54 @@
       </div>`).join("");
   }
 
+  function renderRadar(data){
+    const radar = data.radar || {};
+    const top = radar.top || [];
+    const section = $("radarSection");
+
+    if(!top.length){ section.hidden = true; return; }
+    section.hidden = false;
+
+    $("radarCount").textContent =
+      `${radar.candidates} de ${radar.universe_size} · velas ${radar.timeframe || "1d"}`;
+
+    const enSeguimiento = new Set((data.watchlist || []).map(r => r.symbol));
+
+    $("radarNote").textContent =
+      `Barrido diario del universo completo. Los ${Math.min(8, top.length)} primeros `
+      + `pasan a seguimiento horario; el aviso de entrada llega cuando la vela de una `
+      + `hora lo confirma. El orden es una heurística, no una probabilidad.`;
+
+    $("radarTable").innerHTML = `
+      <table class="rank">
+        <thead>
+          <tr>
+            <th></th><th>Valor</th><th class="co">Nombre</th><th>Sentido</th>
+            <th class="num">Entrada</th><th class="num">Objetivo</th>
+            <th class="num">Stop</th><th class="num">R/B</th><th class="num">Punt.</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${top.map((r,i) => `
+            <tr>
+              <td class="pos">${i+1}</td>
+              <td class="tk">${esc(r.display_symbol)}${
+                enSeguimiento.has(r.symbol) ? `<span class="promoted">En seguimiento</span>` : ""
+              }</td>
+              <td class="co">${esc(r.name)}</td>
+              <td><span class="dir ${r.direction === "buy" ? "buy" : "sell"}">${
+                r.direction === "buy" ? "Compra" : "Venta"
+              }</span></td>
+              <td class="num">${esc(r.entry)}</td>
+              <td class="num">${esc(r.take_profit)}</td>
+              <td class="num">${esc(r.stop_loss)}</td>
+              <td class="num">1:${esc(r.rr_ratio)}</td>
+              <td class="num">${esc(r.score)}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
   function renderColophon(data){
     $("colophon").innerHTML = (data.status || []).map(c => `
       <div class="col-card">
@@ -644,6 +767,7 @@
         Generalo con <code>python3 publish.py</code> y subilo al repo.
       </div>`;
     $("wire").innerHTML = "";
+    $("radarSection").hidden = true;
     $("leaderBody").textContent = "—";
   }
 
@@ -657,6 +781,7 @@
       renderTape(data.watchlist || []);
       renderQuotes(data);
       renderWire(data);
+      renderRadar(data);
       renderColophon(data);
       $("leaderBody").innerHTML = data.brief || "Sin resumen para esta sesión.";
     }catch(err){

@@ -11,7 +11,12 @@ Uso:
     python market.py            # comprueba que todos los símbolos responden
 """
 
+import json
+import os
+
 import pandas as pd
+
+import universe
 
 # ---------------------------------------------------------------------------
 # TU WATCHLIST — editá esta lista y listo.
@@ -32,6 +37,38 @@ WATCHLIST = [
     ("SNOW",     "Snowflake Inc.",      "Acción"),
     ("RKLB",     "Rocket Lab USA",      "Acción"),
 ]
+
+# Símbolos que el escáner ascendió al seguimiento horario. Lo escribe
+# scanner.py una vez al día; si el archivo no existe, no pasa nada.
+AUTO_FILE = "watchlist_auto.json"
+
+
+def _load_auto() -> list:
+    if not os.path.exists(AUTO_FILE):
+        return []
+    try:
+        with open(AUTO_FILE, encoding="utf-8") as f:
+            return json.load(f).get("symbols", [])
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def active_symbols() -> list:
+    """
+    Lo que se vigila cada hora: tu lista fija más lo que el escáner ascendió.
+
+    La lista fija siempre está; lo ascendido rota solo, según lo que el
+    escáner encuentre en el universo amplio.
+    """
+    fijos = [row[0] for row in WATCHLIST]
+    auto = [s for s in _load_auto() if s not in fijos]
+    return fijos + auto
+
+
+def is_promoted(symbol: str) -> bool:
+    """¿Este símbolo entró por el escáner y no por tu lista fija?"""
+    return symbol not in {row[0] for row in WATCHLIST}
+
 
 SYMBOLS = [row[0] for row in WATCHLIST]
 _META = {row[0]: (row[1], row[2]) for row in WATCHLIST}
@@ -99,24 +136,39 @@ def has_volume(df: pd.DataFrame) -> bool:
 # ---------------------------------------------------------------- presentación
 
 
+def _meta(symbol: str) -> tuple[str, str]:
+    """Primero tu lista fija, luego el universo amplio, y si no, el propio ticker."""
+    if symbol in _META:
+        return _META[symbol]
+    if symbol in universe.META:
+        return universe.META[symbol]
+    return (symbol, "Otro")
+
+
 def display_name(symbol: str) -> str:
-    return _META.get(symbol, (symbol, ""))[0]
+    return _meta(symbol)[0]
 
 
 def asset_class(symbol: str) -> str:
-    return _META.get(symbol, ("", "Otro"))[1]
+    return _meta(symbol)[1]
 
 
 def pretty_symbol(symbol: str) -> str:
     """EURUSD=X -> EUR/USD · ^NDX -> NDX · GC=F -> ORO"""
-    special = {"GC=F": "ORO", "SI=F": "PLATA", "CL=F": "PETRÓLEO",
+    special = {"GC=F": "ORO", "SI=F": "PLATA", "HG=F": "COBRE", "PL=F": "PLATINO",
+               "CL=F": "WTI", "BZ=F": "BRENT", "NG=F": "GAS",
+               "ZC=F": "MAÍZ", "ZW=F": "TRIGO", "KC=F": "CAFÉ",
                "^NDX": "NAS100", "^GSPC": "SPX500", "^DJI": "US30",
-               "^GDAXI": "DAX40", "^FTSE": "FTSE100"}
+               "^RUT": "RUSSELL", "^VIX": "VIX", "^GDAXI": "DAX40",
+               "^FCHI": "CAC40", "^IBEX": "IBEX35", "^FTSE": "FTSE100",
+               "^STOXX50E": "STOXX50", "^N225": "NIKKEI", "^HSI": "HANGSENG"}
     if symbol in special:
         return special[symbol]
     if symbol.endswith("=X"):
         base = symbol[:-2]
         return f"{base[:3]}/{base[3:]}" if len(base) == 6 else base
+    if "." in symbol:          # bolsas europeas: SAN.MC -> SAN
+        return symbol.split(".")[0]
     return symbol.lstrip("^")
 
 
@@ -136,12 +188,14 @@ def format_price(symbol: str, price: float) -> str:
 
 
 if __name__ == "__main__":
-    print(f"Comprobando {len(SYMBOLS)} símbolos…\n")
-    for sym in SYMBOLS:
+    activos = active_symbols()
+    print(f"Comprobando {len(activos)} símbolos activos…\n")
+    for sym in activos:
         try:
             df = get_candles(sym)
             vol = "con volumen" if has_volume(df) else "SIN volumen (normal en forex)"
-            print(f"  ✔ {pretty_symbol(sym):<10} {sym:<11} {len(df):>4} velas · "
+            origen = "escáner" if is_promoted(sym) else "fija "
+            print(f"  ✔ {pretty_symbol(sym):<10} {sym:<11} [{origen}] {len(df):>4} velas · "
                   f"último {format_price(sym, df['Close'].iloc[-1])} · {vol}")
         except Exception as e:
             print(f"  ✘ {pretty_symbol(sym):<10} {sym:<11} {e}")

@@ -13,6 +13,7 @@ Uso:
     python publish.py --push             # además hace commit y push a GitHub
 """
 
+import io
 import os
 import json
 import subprocess
@@ -26,6 +27,7 @@ from analyzer import analyze, reason_text
 load_dotenv()
 
 DATA_FILE = "data.json"
+RADAR_FILE = "radar.json"
 EVENTS_FILE = "events.json"      # historial local del feed de alertas
 MAX_EVENTS = 12
 
@@ -33,6 +35,17 @@ TIMEZONE_LABEL = os.getenv("PANEL_TIMEZONE_LABEL", "UTC")
 
 
 # ------------------------------------------------------------------ eventos
+
+
+def load_radar() -> dict:
+    """El ranking del ultimo escaneo diario, si existe."""
+    if not os.path.exists(RADAR_FILE):
+        return {}
+    try:
+        with io.open(RADAR_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
 
 
 def load_previous_signals() -> dict:
@@ -260,6 +273,13 @@ def _system_status(results: list) -> list:
             "pill_class": "local",
         },
         {
+            "name": "Radar",
+            "pulse": "ok" if _radar_ok() else "warn",
+            "rows": _radar_rows(),
+            "pill": "Escaneo diario",
+            "pill_class": "read",
+        },
+        {
             "name": "Avisos por Telegram",
             "pulse": "ok" if _telegram_ok() else "warn",
             "rows": [
@@ -282,6 +302,22 @@ def _system_status(results: list) -> list:
     ]
 
 
+def _radar_ok() -> bool:
+    return bool(load_radar().get("top"))
+
+
+def _radar_rows() -> list:
+    r = load_radar()
+    if not r:
+        return [["Estado", "sin escanear todavia"],
+                ["Universo", "se revisa una vez al dia"]]
+    return [
+        ["Universo", f"{r.get('universe_size', 0)} simbolos"],
+        ["Candidatos", f"{r.get('candidates', 0)} con senal"],
+        ["Velas", r.get("timeframe", "1d")],
+    ]
+
+
 def _telegram_ok() -> bool:
     return bool(os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"))
 
@@ -291,6 +327,8 @@ def build_payload(results: list) -> dict:
     events = _merge_events(_detect_events(results))
     brief = _ai_brief(results) or _rule_based_brief(results)
 
+    radar = load_radar()
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "timezone_label": TIMEZONE_LABEL,
@@ -298,13 +336,15 @@ def build_payload(results: list) -> dict:
         "execution": False,
         "source": "Yahoo Finance",
         "watchlist": [
-            {**r, "reason": reason_text(r)} for r in ok
+            {**r, "reason": reason_text(r), "promoted": market.is_promoted(r["symbol"])}
+            for r in ok
         ],
         "errors": [
             {"symbol": r["symbol"], "error": r["error"]} for r in results if "error" in r
         ],
         "events": events,
         "brief": brief,
+        "radar": radar,
         "status": _system_status(results),
     }
 
@@ -343,5 +383,5 @@ def git_push():
 if __name__ == "__main__":
     import sys
 
-    results = [analyze(s) for s in market.SYMBOLS]
+    results = [analyze(s) for s in market.active_symbols()]
     publish(results, push="--push" in sys.argv)

@@ -9,8 +9,9 @@ bróker y no hay nada que pueda mandar una orden por su cuenta. Vos leés
 la recomendación y decidís qué hacer en tu bróker.
 
 Uso:
-    python bot.py              # una pasada: alertas + actualiza el panel, y sale
+    python bot.py              # una pasada: avisos + actualiza el panel, y sale
     python bot.py --daemon     # queda corriendo, revisa cada N minutos
+    python bot.py --radar      # escanea el universo amplio y manda el resumen diario
 
 Comandos en el chat: /revisar y /estado (solo responde a tu chat).
 """
@@ -26,6 +27,8 @@ from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 import market
+import universe
+import scanner
 from analyzer import analyze, reason_text
 from publish import publish, load_previous_signals
 
@@ -72,9 +75,10 @@ def _is_owner(update: Update) -> bool:
 def format_message(r: dict) -> str:
     emoji = {"ENTRADA": "🟡", "PRECAUCION": "🔴", "OBSERVAR": "🔵"}.get(r["signal"], "⚪")
     side = {"buy": "compra", "sell": "venta"}.get(r["direction"], "sin dirección")
+    origen = " 📡" if market.is_promoted(r["symbol"]) else ""
 
     lines = [
-        f"{emoji} *{_escape(r['display_symbol'])}* — {r['signal']} ({side})",
+        f"{emoji} *{_escape(r['display_symbol'])}*{origen} — {r['signal']} ({side})",
         f"Precio: {r['price']}  ·  {r['change_pct']:+}% sesión  ·  RSI {r['rsi']}",
     ]
     if r["activity_spike"]:
@@ -91,6 +95,8 @@ def format_message(r: dict) -> str:
         ]
 
     lines += ["", f"_{_escape(reason_text(r))}_"]
+    if market.is_promoted(r["symbol"]):
+        lines.append(f"_Lo trajo el radar: {_escape(r['name'])}. No esta en tu lista fija._")
     return "\n".join(lines)
 
 
@@ -117,9 +123,13 @@ async def cmd_estado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not _is_owner(update):
         return
 
+    activos = market.active_symbols()
+    fijos = len(market.WATCHLIST)
     lines = [
         "*Vantage* · solo recomendaciones, sin ejecución",
-        f"Vigilando {len(market.SYMBOLS)} símbolos, velas de {market.YF_INTERVAL}",
+        f"Cada hora: {len(activos)} símbolos ({fijos} fijos + "
+        f"{len(activos) - fijos} del radar), velas de {market.YF_INTERVAL}",
+        f"Radar diario: {len(universe.SYMBOLS)} símbolos, velas de 1d",
         f"Revisión cada {CHECK_INTERVAL_MINUTES} min",
         f"Panel: {'con push automático' if AUTO_PUSH else 'actualización local'}",
     ]
@@ -169,7 +179,7 @@ async def run_round(bot: Bot):
             print(f"Estado recuperado: {len(_last_signal)} señales de la ronda anterior")
 
     results = []
-    for symbol in market.SYMBOLS:
+    for symbol in market.active_symbols():
         r = analyze(symbol)
         results.append(r)
         await send_alert(bot, r)
@@ -181,6 +191,22 @@ async def run_round(bot: Bot):
         print(f"⚠ No se pudo actualizar data.json: {e}")
 
     return results
+
+
+async def run_radar():
+    """Escanea el universo amplio, asciende los mejores y manda el resumen."""
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+
+    print(f"Escaneando {len(universe.SYMBOLS)} simbolos...")
+    resultados = scanner.scan()
+    radar = scanner.save(resultados)
+
+    print(f"{radar['scanned']} analizados, {radar['candidates']} candidatos")
+    await bot.send_message(
+        chat_id=TELEGRAM_CHAT_ID,
+        text=scanner.format_digest(radar),
+        parse_mode=ParseMode.MARKDOWN,
+    )
 
 
 async def run_once():
@@ -223,5 +249,7 @@ if __name__ == "__main__":
 
     if "--daemon" in sys.argv:
         run_daemon()
+    elif "--radar" in sys.argv:
+        asyncio.run(run_radar())
     else:
         asyncio.run(run_once())

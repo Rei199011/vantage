@@ -15,19 +15,33 @@ No es asesoría financiera regulada.
 
 | Archivo | Qué es |
 |---|---|
-| `market.py` | Datos de Yahoo Finance. Acá se edita el **watchlist** |
+| `universe.py` | El **universo amplio** que el radar rastrea a diario (~180 símbolos) |
+| `scanner.py` | Barrido diario: puntúa el universo y asciende los mejores |
+| `market.py` | Datos de Yahoo Finance y tu **watchlist fija** |
 | `analyzer.py` | Indicadores y señales (ENTRADA / OBSERVAR / PRECAUCION), en compra y en venta |
 | `bot.py` | Bot de Telegram: avisos y comandos `/revisar` y `/estado` |
 | `publish.py` | Genera `data.json`, que es lo que lee el panel |
 | `dashboard.html` | El boletín. Se publica en GitHub Pages y se instala como app en el iPhone |
 | `.env.example` | Plantilla — copiar a `.env` y completar (solo si corrés en local) |
-| `.github/workflows/vantage.yml` | Hace que GitHub ejecute todo por vos, sin instalar nada |
+| `.github/workflows/vantage.yml` | Seguimiento horario en los servidores de GitHub |
+| `.github/workflows/radar.yml` | Barrido diario del universo amplio |
+
+Funciona en dos niveles:
 
 ```
-Yahoo Finance ──velas──> analyzer.py ──señales──> bot.py ──> tu Telegram
-                              │
-                              └──> publish.py ──> data.json ──> git push ──> dashboard.html
+universe.py (180 símbolos)  ──velas diarias──> scanner.py ──ordena──> radar diario a Telegram
+                                                    │
+                                    asciende los 8 mejores
+                                                    ▼
+market.py (tu lista fija) + ascendidos ──velas horarias──> analyzer.py ──> avisos a Telegram
+                                                    │
+                                                    └──> publish.py ──> dashboard.html
 ```
+
+**Por qué dos niveles y no uno.** Rastrear 180 símbolos cada hora no es viable
+—Yahoo corta el acceso— y tampoco sería útil: te llegarían treinta avisos al día
+y dejarías de leerlos. La vela diaria dice **si el setup existe**; la horaria,
+**cuándo entrar**. El radar busca dónde mirar, el seguimiento vigila.
 
 La única credencial de todo el proyecto es el token de Telegram. Vive en `.env`
 si corrés en local, o como *secret* del repo si usás GitHub Actions. En ninguno
@@ -56,9 +70,26 @@ python bot.py               # manda una ronda de avisos
 `market.py` comprueba símbolo por símbolo que Yahoo devuelve datos y te dice
 cuántas velas trae cada uno.
 
-### Elegir qué mirar
+## Las dos listas
 
-El watchlist está arriba de `market.py`, como una lista de tuplas:
+**`market.py` → `WATCHLIST`** es tu lista fija: lo que se vigila cada hora,
+pase lo que pase. Once símbolos de partida.
+
+**`universe.py`** es lo que el radar rastrea a diario. Unos 180: los pares de
+divisas líquidos, materias primas, índices globales y grandes cotizadas de
+EE.UU. y Europa. De ahí ascienden 8 cada día al seguimiento horario, y rotan
+solos según lo que encuentre.
+
+En Telegram y en el panel, lo que viene del radar sale marcado, para que sepas
+si un aviso es de tu lista o un hallazgo.
+
+Se pueden ampliar los dos. Añadir al universo cuesta tiempo de ejecución: 180
+símbolos tardan alrededor de un minuto porque se descargan por lotes de 40.
+Con 400 iría bien; con 3.000, Yahoo te cortaría.
+
+### Formato de los símbolos
+
+El watchlist fijo va como lista de tuplas:
 `(ticker de Yahoo, nombre a mostrar, clase de activo)`.
 
 Para añadir algo, buscalo en finance.yahoo.com y copiá el símbolo de la URL.
@@ -194,7 +225,15 @@ En Mac, lo mismo con un `.plist` en `~/Library/LaunchAgents/`.
 
 ## 4. Ajustar la sensibilidad
 
-Todo está en la cabecera de `analyzer.py`:
+En `scanner.py`:
+
+| Parámetro | Por defecto | Qué controla |
+|---|---|---|
+| `PROMOTE_TOP` | 8 | Cuántos ascienden a seguimiento horario cada día |
+| `RADAR_TOP` | 20 | Cuántos se muestran en la tabla del panel |
+| `BATCH_SIZE` | 40 | Símbolos por petición a Yahoo |
+
+En la cabecera de `analyzer.py`:
 
 | Parámetro | Por defecto | Qué controla |
 |---|---|---|
@@ -208,6 +247,18 @@ Todo está en la cabecera de `analyzer.py`:
 En `bot.py`: `CHECK_INTERVAL_MINUTES` y `ALERT_ON`, que decide de qué señales
 te avisa (por defecto, entradas y precauciones; las de observación solo salen
 en el panel para no llenarte el chat).
+
+---
+
+### Cómo se ordena el radar
+
+La puntuación pondera el riesgo/beneficio, cuánta actividad inusual hay y cuán
+separadas están las medias (medido en ATR, para poder comparar el Nasdaq con el
+euro). Resta puntos si el RSI ya va camino del extremo, porque queda menos
+recorrido.
+
+Es una heurística, no una probabilidad. Que ordene bien está tan sin validar
+como el resto del sistema.
 
 ---
 
@@ -225,3 +276,4 @@ Otras ideas:
 - Filtro de sesión: no avisar en horas de poca liquidez
 - Filtro de calendario económico
 - Registro de las señales para poder medirlas después
+- Ampliar el universo a más bolsas europeas y asiáticas

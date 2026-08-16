@@ -1,0 +1,55 @@
+# Vantage — barrido diario del universo amplio.
+#
+# Revisa los ~180 símbolos de universe.py sobre velas diarias, los ordena,
+# asciende los mejores al seguimiento horario y te manda el resumen.
+#
+# Es el complemento de vantage.yml: este busca dónde mirar, aquel vigila.
+
+name: Radar
+
+on:
+  schedule:
+    # 05:40 UTC, de lunes a viernes: antes de que abra Europa, para que el
+    # seguimiento horario del día ya arranque con la lista actualizada.
+    - cron: '40 5 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vantage          # comparte grupo con vantage.yml: nunca se solapan
+  cancel-in-progress: false
+
+jobs:
+  escanear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Bajar el repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Escanear el universo
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python bot.py --radar
+
+      - name: Publicar el ranking
+        run: |
+          git config user.name  "Vantage"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add radar.json watchlist_auto.json
+          git diff --staged --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Radar — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
