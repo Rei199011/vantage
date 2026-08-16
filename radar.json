@@ -1,60 +1,17 @@
 {
-  "generated_at": "2026-08-16T19:07:26.772938+00:00",
-  "universe_size": 180,
-  "scanned": 173,
-  "candidates": 6,
+  "generated_at": "2026-08-16T19:26:19.486403+00:00",
+  "universe_size": 134,
+  "scanned": 127,
+  "candidates": 3,
   "timeframe": "1d",
-  "reviewed": 5,
+  "reviewed": 3,
   "portfolio": {
-    "concentracion": "Hay una fuerte concentración en metales y materias primas (Plata, Platino, Cobre y Rio Tinto), acumulando cuatro de las seis señales en este segmento.",
-    "contradicciones": "El sistema emite señales opuestas en el sector de metales: recomienda venta en Plata y Rio Tinto, mientras indica compra en Platino y Cobre.",
-    "advertencia": "Operar estas señales a la vez implica tomar direcciones contrarias en activos altamente vinculados al ciclo de materias primas.",
-    "grupos": [
-      [
-        "PLATA",
-        "PLATINO",
-        "COBRE",
-        "RIO"
-      ]
-    ]
+    "concentracion": "Sin datos de sector provistos para confirmar solapamiento macroeconómico directo.",
+    "contradicciones": null,
+    "advertencia": "Dos de las tres señales generadas (RIO y LUNR) tienen veredicto de descartar y la única restante (BP) está para matizar.",
+    "grupos": []
   },
   "top": [
-    {
-      "symbol": "SI=F",
-      "display_symbol": "PLATA",
-      "name": "Plata",
-      "asset_class": "Materia prima",
-      "price": 65.11,
-      "change_pct": 0.36,
-      "signal": "ENTRADA",
-      "direction": "sell",
-      "entry": 65.11,
-      "take_profit": 55.01,
-      "stop_loss": 67.92,
-      "rr_ratio": 3.58,
-      "rsi": 72.4,
-      "activity_ratio": 17.96,
-      "activity_label": "volumen",
-      "volume_based": true,
-      "score": 96.4,
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 17.96x el promedio de 20 velas; rsi 72.4 en zona de sobrecompra.",
-      "ai": {
-        "veredicto": "matizar",
-        "conviccion": 2,
-        "tecnico": "El sistema propone una venta con ratio 3.58 apoyada en un pico de volumen de 17.96 veces la media. Sin embargo, el RSI está en 72.4 y la fuerza de la tendencia bajista es moderada con 0.76 ATR.",
-        "economico": "Sin datos fundamentales al tratarse de una materia prima. Falta contexto macroeconómico, tipos de interés y demanda industrial para evaluar el valor subyacente.",
-        "conflicto": null,
-        "riesgos": [
-          "RSI en 72.4 refleja presión compradora reciente en contradicción con una señal de venta",
-          "Pico de volumen inusualmente alto (17.96) que puede representar absorción o continuidad del impulso alcista diario (+0.36%)",
-          "Fuerza de tendencia bajista débil (0.76 ATR)"
-        ],
-        "invalidaria": "Un cierre diario por encima del nivel de stop loss en 67.92.",
-        "resumen": "Señal de venta con ratio favorable y volumen extremo, pero debilitada por un RSI en 72.4 y sin respaldo fundamental.",
-        "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": false
-      }
-    },
     {
       "symbol": "RIO.L",
       "display_symbol": "RIO",
@@ -77,17 +34,21 @@
       "ai": {
         "veredicto": "descartar",
         "conviccion": 4,
-        "tecnico": "El sistema detecta una señal de venta con fuerte volumen inusual, pero la fuerza de la tendencia bajista es débil (0.21 ATR). Además, el RSI se ubica en 57.6, lo cual no refleja debilidad técnica inmediata.",
-        "economico": "Los fundamentales son sólidos: los beneficios crecieron un 46.9%, el margen neto roza el 19.6% y el endeudamiento es bajo (31.9%). El precio objetivo de consenso (7526.8) se sitúa por encima del precio actual de entrada.",
-        "conflicto": "La señal técnica propone vender en corto una empresa rentable, con crecimiento sólido de beneficios y cotizando por debajo del objetivo medio de los analistas.",
+        "tecnico": "El sistema detecta una tendencia bajista incipiente con fuerza baja (0.21) y un pico de volumen de 2.65 veces el habitual. El RSI en 57.6 permanece en rango neutral sin acompañar un impulso bajista real.",
+        "economico": "La empresa presenta cuentas sólidas con un margen neto del 19.58%, crecimiento de beneficio del 46.9% y un flujo de caja libre de 3.595 millones. El precio objetivo medio de los analistas (7526.84) se sitúa por encima del precio de entrada propuesto.",
+        "conflicto": "El sistema técnico plantea una venta corta mientras los fundamentales muestran solvencia, fuerte crecimiento de beneficios y un precio objetivo alcista.",
         "riesgos": [
-          "Fuerza de tendencia muy baja (0.21) que expone a giros rápidos en contra del trade.",
-          "Riesgo de rebote alcista impulsado por buenos múltiplos fundamentales (PER 12.9 y márgenes elevados)."
+          "El volumen anormal y la caída del precio coinciden con la fecha ex-dividendo del 13 de agosto, distorsionando el cálculo del indicador técnico.",
+          "El régimen de mercado internacional se encuentra en tendencia alcista generalizada y con baja volatilidad, lo que penaliza las posiciones cortas."
         ],
-        "invalidaria": "Un cierre por encima del stop loss fijado en 7410.68 o la superación de la media móvil que marca la tendencia.",
-        "resumen": "Se descarta la venta por fuerte contradicción entre la señal bajista y unos fundamentales financieros muy sólidos.",
+        "invalidaria": "Un cierre diario por encima del stop loss establecido en 7410.68.",
+        "momento": "Momento inadecuado para vender: la caída y el volumen reflejan el ajuste mecánico por ex-dividendo reciente, no debilidad estructural.",
+        "noticia_clave": "El 13 de agosto de 2026 se cumplió la fecha ex-dividendo semestral de las acciones ordinarias de Rio Tinto PLC.",
+        "resumen": "Señal de venta descartada: el movimiento técnico está distorsionado por la fecha ex-dividendo reciente y choca contra fundamentales sólidos.",
         "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": true
+        "tiene_fundamentales": true,
+        "tiene_noticias": true,
+        "noticias": "* El 13 de agosto de 2026, Rio Tinto anunció un acuerdo con el gobierno de Australia y el de Nueva Gales del Sur por un paquete de respaldo de 2.500 millones de dólares australianos para asegurar la continuidad de la fundición Tomago Aluminium hasta 2038.\n* El pacto contempla un contrato de suministro de energía a 10 años con transición al 100% de fuentes renovables a partir de 2033 y una inversión comprometida en la planta de 1.100 millones de AUD.\n* El 13 de agosto de 2026 se cumplió la fecha ex-dividendo para las acciones ordinarias de Rio Tinto PLC correspondiente a su dividendo a cuenta semestral."
       }
     },
     {
@@ -108,77 +69,25 @@
       "activity_label": "volumen",
       "volume_based": true,
       "score": 87.0,
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.8x el promedio de 20 velas; rsi 76.4 en zona de sobrecompra."
-    },
-    {
-      "symbol": "PL=F",
-      "display_symbol": "PLATINO",
-      "name": "Platino",
-      "asset_class": "Materia prima",
-      "price": 1756.9,
-      "change_pct": 1.84,
-      "signal": "ENTRADA",
-      "direction": "buy",
-      "entry": 1756.9,
-      "take_profit": 1955.1,
-      "stop_loss": 1702.39,
-      "rr_ratio": 3.64,
-      "rsi": 67.7,
-      "activity_ratio": 19.81,
-      "activity_label": "volumen",
-      "volume_based": true,
-      "score": 86.5,
-      "reason": "Media de 20 sobre la de 50 (tendencia alcista); volumen 19.81x el promedio de 20 velas.",
+      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.8x el promedio de 20 velas; rsi 76.4 en zona de sobrecompra.",
       "ai": {
-        "veredicto": "matizar",
-        "conviccion": 3,
-        "tecnico": "Presenta tendencia alcista con un pico de volumen inusual de 19.81x y una relación riesgo/beneficio de 3.64. Sin embargo, la fuerza de la tendencia es reducida (0.19 ATR) y el RSI está en 67.7, próximo a zona de sobrecompra.",
-        "economico": "No hay datos fundamentales por tratarse de una materia prima y no una empresa cotizada. Falta información sobre la oferta, demanda y contexto macroeconómico del mercado físico para evaluar el trasfondo.",
-        "conflicto": null,
+        "veredicto": "descartar",
+        "conviccion": 4,
+        "tecnico": "El sistema propone una venta corta por la tendencia bajista de fondo y un RSI sobrecomprado de 76.4. No obstante, el precio sube un 8.26% en la sesión con pico de volumen que cuestiona la continuidad bajista.",
+        "economico": "Aunque la empresa presenta pérdidas netas y flujo de caja libre negativo de -114.87 millones, sus ingresos crecen un 309.8% y el consenso de 8 analistas es compra fuerte con precio objetivo de 29.5.",
+        "conflicto": "La señal técnica busca ponerse en corto mientras las noticias corporativas y las valoraciones de los analistas apuntan a una fuerte recuperación.",
         "riesgos": [
-          "RSI en 67.7 acercándose a niveles de sobrecompra",
-          "Fuerza de tendencia débil medida en 0.19 ATR",
-          "Ausencia total de datos fundamentales para contrastar el impulso técnico"
+          "Riesgo de estrangulamiento de cortos con un 27.14% del free float posicionado a la baja",
+          "Fuerte entrada de volumen institucional tras elevar la cartera de pedidos a 1.800 millones de dólares"
         ],
-        "invalidaria": "Un retroceso del precio por debajo del stop loss en 1702.39",
-        "resumen": "Setup técnico alcista con volumen atípico y buen ratio R/B, pero condicionado por un RSI alto y falta de datos fundamentales.",
+        "invalidaria": "Un cierre diario por encima del stop loss fijado en 21.74 o la superación de los máximos de la sesión impulsora.",
+        "momento": "Momento inadecuado para vender en corto: el mercado acaba de recibir un contrato comercial de 600 millones de dólares y la guía anual fue confirmada.",
+        "noticia_clave": "Firma de un nuevo contrato comercial superior a 600 millones de dólares para construir tres satélites geoestacionarios.",
+        "resumen": "Descartar la venta: shortear tras un contrato masivo de 600M y con 27% de interés corto es un riesgo excesivo.",
         "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": false
-      }
-    },
-    {
-      "symbol": "HG=F",
-      "display_symbol": "COBRE",
-      "name": "Cobre",
-      "asset_class": "Materia prima",
-      "price": 6.61,
-      "change_pct": 0.31,
-      "signal": "ENTRADA",
-      "direction": "buy",
-      "entry": 6.61,
-      "take_profit": 6.9,
-      "stop_loss": 6.45,
-      "rr_ratio": 1.8,
-      "rsi": 68.9,
-      "activity_ratio": 11.75,
-      "activity_label": "volumen",
-      "volume_based": true,
-      "score": 78.1,
-      "reason": "Media de 20 sobre la de 50 (tendencia alcista); volumen 11.75x el promedio de 20 velas.",
-      "ai": {
-        "veredicto": "matizar",
-        "conviccion": 3,
-        "tecnico": "Presenta tendencia alcista con un fuerte pico de volumen de 11.75 veces el promedio. Sin embargo, el precio actual (6.61) opera muy cerca de la resistencia en 6.73, con un RSI en 68.9 y un objetivo en 6.90 que requiere romper dicha barrera.",
-        "economico": "Sin datos fundamentales al tratarse de una materia prima. Se carece de información sobre oferta, demanda global e inventarios para contrastar el movimiento del precio.",
-        "conflicto": null,
-        "riesgos": [
-          "El objetivo de ganancia en 6.90 se ubica por encima de la resistencia técnica de 6.73.",
-          "El indicador RSI se encuentra en 68.9, próximo a zona de sobrecompra."
-        ],
-        "invalidaria": "Pérdida del nivel de stop loss fijado en 6.45.",
-        "resumen": "Setup alcista respaldado por volumen extraordinario, pero condicionado por la cercanía inmediata a la resistencia en 6.73.",
-        "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": false
+        "tiene_fundamentales": true,
+        "tiene_noticias": true,
+        "noticias": "* El 13 de agosto, la compañía presentó sus resultados del segundo trimestre con ingresos de 206,2 millones de dólares (un alza interanual de más del 300% que se situó por debajo del consenso) y una pérdida neta ampliada a 46,4 millones de dólares (-0,29 USD por acción) [PerQueryResult(1.1.6), PerQueryResult(1.1.8)].\n* La dirección reafirmó su guía de ingresos para el año 2026 en el rango de 900 a 1.000 millones de dólares, manteniendo la previsión de alcanzar un EBITDA ajustado positivo [PerQueryResult(1.1.9)].\n* El 13 de agosto, informó un nuevo contrato comercial superior a 600 millones de dólares para construir tres satélites geoestacionarios, lo que impulsó su cartera total de pedidos acumulados (*backlog*) hasta un récord de 1.800 millones de dólares [PerQueryResult(1.1.4)].\n* Hacia el 14 de agosto, analistas de firmas como Stifel, Roth y Deutsche Bank mantuvieron sus recomendaciones de compra, aunque recortaron sus precios objetivos promedio debido a ajustes de valoración en el sector [PerQueryResult(1.1.8), PerQueryResult(1.1.9)]."
       }
     },
     {
@@ -203,17 +112,22 @@
       "ai": {
         "veredicto": "matizar",
         "conviccion": 3,
-        "tecnico": "La tendencia diaria es alcista y el volumen duplica la media habitual con un RSI neutral en 45.0. No obstante, el take profit establecido en 572.07 queda por encima del nivel de resistencia calculado en 562.81.",
-        "economico": "Muestra un crecimiento de ingresos del 48.2% y de beneficio del 138.9%, junto a una sólida generación de caja libre. Como contrapartida, presenta una deuda sobre fondos propios del 95.12% y un margen neto estrecho del 2.55%.",
+        "tecnico": "El setup alcista muestra un pico de volumen de 2.15x y tendencia definida, con RSI neutro en 45.0. No obstante, el take profit fijado en 572.07 se ubica por encima de la resistencia técnica identificada en 562.81.",
+        "economico": "Los fundamentales presentan un crecimiento interanual de beneficios del 138.9% e ingresos del 48.2%, con un flujo de caja libre de 12.88 mil millones. El endeudamiento sobre fondos propios es elevado, situándose en 95.12%.",
         "conflicto": null,
         "riesgos": [
-          "El take profit en 572.07 requiere perforar la resistencia de 562.81 sin consolidación previa.",
-          "El ratio de deuda sobre fondos propios es del 95.12% en un entorno de margen neto ajustado (2.55%)."
+          "Resistencia técnica en 562.81 previa al objetivo de toma de beneficios en 572.07",
+          "Presión operativa reciente por paradas no programadas en la refinería de Whiting",
+          "Nivel de deuda sobre fondos propios del 95.12%"
         ],
-        "invalidaria": "Un retroceso del precio que alcance o perfore el stop loss fijado en 495.58.",
-        "resumen": "Señal con respaldo fundamental y volumen técnico, pero con un objetivo situado más allá de la resistencia inmediata.",
+        "invalidaria": "Una caída y cierre por debajo del soporte de 495.58 (nivel de stop loss).",
+        "momento": "A 75 días de los próximos resultados no hay riesgo de evento inminente, pero la superación de la resistencia intermedia en 562.81 es el obstáculo técnico inmediato tras el repunte de volumen.",
+        "noticia_clave": "BP obtuvo la licencia para operar la Fase 2 del campo offshore de gas Loran en Venezuela.",
+        "resumen": "Señal técnica respaldada por volumen y crecimiento de beneficios, pero condicionada por una resistencia técnica situada antes del objetivo de beneficio.",
         "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": true
+        "tiene_fundamentales": true,
+        "tiene_noticias": true,
+        "noticias": "* El 12 de agosto de 2026, BP obtuvo la licencia para desarrollar la Fase 2 del campo offshore Loran en el marco de nuevos acuerdos de gas con el gobierno de Venezuela.\n* Hacia el 13 de agosto de 2026, se confirmó la adjudicación a Emerson de un contrato relevante para suministrar sistemas de automatización en el proyecto de compresión Shah Deniz (valuado en USD 2.900 millones).\n* En el frente operativo, a inicios de la semana (aproximadamente 10 de agosto de 2026) se registraron presiones en los volúmenes de refinación debido a paradas imprevistas de mantenimiento en la refinería de Whiting."
       }
     }
   ]
