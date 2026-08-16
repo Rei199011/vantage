@@ -1,0 +1,11 @@
+{
+  "name": "Vantage — Boletín de niveles",
+  "short_name": "Vantage",
+  "start_url": "./dashboard.html",
+  "display": "standalone",
+  "background_color": "#F4E8DA",
+  "theme_color": "#F4E8DA",
+  "icons": [
+    { "src": "icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,15 @@
+# Vantage — dependencias
+# Instalar con: pip install -r requirements.txt
+
+pandas>=2.0
+python-dotenv>=1.0
+
+# Datos de mercado: divisas, metales, índices y acciones.
+yfinance>=0.2.40
+
+# El extra [job-queue] es obligatorio: sin él no existe app.job_queue
+# y el modo --daemon no puede programar las revisiones periódicas.
+python-telegram-bot[job-queue]>=20.0
+
+# Opcional: solo si querés el resumen diario escrito por Claude.
+# anthropic>=0.40
