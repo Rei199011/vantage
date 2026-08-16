@@ -176,8 +176,9 @@ def review(cands: list) -> dict | None:
     Solo se revisan los primeros: el universo entero serían 180 llamadas al
     día para nada, porque la mayoría ni siquiera dio señal.
     """
-    if not ai.available():
-        print("  (sin IA: falta GEMINI_API_KEY o el paquete google-genai)")
+    motivo = ai.why_unavailable()
+    if motivo:
+        print(f"  Revisión con IA desactivada: {motivo}")
         return None
 
     revisados = cands[:REVIEW_TOP]

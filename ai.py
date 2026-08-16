@@ -8,8 +8,8 @@ Todo es opcional: si no hay GEMINI_API_KEY, Vantage funciona igual y el
 panel usa el resumen por reglas.
 
 Configuración (.env o secret del repo):
-    GEMINI_API_KEY=tu_clave        # se saca gratis en aistudio.google.com
-    GEMINI_MODEL=gemini-2.5-flash  # opcional; mirá en AI Studio cuál tenés
+    GEMINI_API_KEY=tu_clave           # se saca gratis en aistudio.google.com
+    GEMINI_MODEL=gemini-flash-latest  # opcional; el alias apunta al Flash actual
 
 Coste: con los 8 candidatos del radar más el resumen, son unas 10 llamadas
 al día. El plan gratuito de AI Studio permite del orden de mil.
@@ -34,18 +34,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# Ojo con el `or` en vez del segundo argumento de os.getenv: en GitHub Actions,
+# ${{ vars.GEMINI_MODEL }} se resuelve como CADENA VACÍA cuando esa variable no
+# existe. os.getenv("X", "defecto") solo aplica el defecto si la variable falta
+# por completo, no si está vacía — y un nombre de modelo vacío hace que todas
+# las llamadas fallen en silencio.
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
+GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "").strip() or "gemini-flash-latest"
+
+
+def why_unavailable() -> str | None:
+    """Devuelve el motivo concreto por el que la IA no puede usarse, o None."""
+    if not GEMINI_API_KEY:
+        return ("falta GEMINI_API_KEY (o llegó vacía). En GitHub Actions, "
+                "comprobá que el secret existe y que el workflow lo pasa en env:")
+    try:
+        import google.genai  # noqa: F401
+    except ImportError:
+        return "falta el paquete google-genai. Revisá requirements.txt"
+    return None
 
 
 def available() -> bool:
-    if not GEMINI_API_KEY:
-        return False
-    try:
-        import google.genai  # noqa: F401
-        return True
-    except ImportError:
-        return False
+    return why_unavailable() is None
 
 
 def _client():
@@ -157,7 +168,8 @@ def analyze_candidate(tecnico: dict, fundamental: dict | None) -> dict | None:
     try:
         texto = _generate(_prompt_candidato(tecnico, fundamentals.resumen_texto(fundamental)))
     except Exception as e:
-        print(f"    IA no disponible para {tecnico.get('symbol')}: {e}")
+        print(f"    Fallo al analizar {tecnico.get('symbol')} con modelo "
+              f"'{GEMINI_MODEL}': {type(e).__name__}: {e}")
         return None
 
     datos = _parse_json(texto)
