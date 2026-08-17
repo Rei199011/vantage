@@ -3,6 +3,13 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "MSFT",
+    "time": "2026-08-17T20:44:33.304732+00:00",
+    "body": "RSI en <strong>20.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSFT",
     "time": "2026-08-17T19:42:52.999707+00:00",
     "body": "RSI en <strong>20.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
