@@ -1,5 +1,19 @@
 [
   {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "RKLB",
+    "time": "2026-08-17T13:53:20.988786+00:00",
+    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 84.93, stop 81.82."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSFT",
+    "time": "2026-08-17T13:53:20.988786+00:00",
+    "body": "RSI en <strong>25.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "LUNR",
