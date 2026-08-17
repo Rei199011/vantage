@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T20:44:38.356929+00:00",
+  "generated_at": "2026-08-17T21:42:37.261378+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -533,7 +533,7 @@
       "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 225.16, stop 222.38."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. La única alerta destacada es de precaución en <strong class='lo'>MSFT</strong>, que propone venta tras caer un 3,0% pese a registrar un RSI de 20,6. En el resto de valores bajo observación, como PLTR con un RSI de 13,3 en compra o SNOW en venta con RSI de 32,7, las lecturas técnicas se contradicen. Corresponde descartar estas propuestas y esperar configuraciones más claras. Recordá que estos parámetros provienen de un filtro técnico en velas de 60 minutos sin validación histórica.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. La única alerta operativa es <strong class='lo'>MSFT</strong> con orden de venta tras caer un 3.0%, aunque su RSI en 20.6 choca de frente con el soporte inmediato de 478.41. En PLTR el filtro marca compra pese a registrar un RSI extremo de 13.3, mientras que en SNOW sugiere venta tras una subida de 0.37%. Con estas discrepancias técnicas y sin señales limpias, la decisión prudente es descartar ejecuciones. Recordá que estos niveles se generan automáticamente y no están validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-17T06:05:09.301840+00:00",
     "universe_size": 134,
