@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-08-16T19:50:51.270871+00:00",
+  "generated_at": "2026-08-17T06:05:09.301840+00:00",
   "universe_size": 134,
   "scanned": 127,
   "candidates": 3,
   "timeframe": "1d",
-  "reviewed": 3,
+  "reviewed": 2,
   "portfolio": {
     "concentracion": null,
     "contradicciones": null,
-    "advertencia": "Dos de las tres señales (RIO y LUNR) ya están marcadas para descartar, dejando únicamente a BP con revisión pendiente.",
+    "advertencia": "LUNR ya cuenta con veredicto de descartar y no existen datos de sector para validar la correlación entre las señales de compra y venta.",
     "grupos": []
   },
   "top": [
@@ -30,27 +30,7 @@
       "activity_label": "volumen",
       "volume_based": true,
       "score": 89.5,
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 2.65x el promedio de 20 velas.",
-      "ai": {
-        "veredicto": "descartar",
-        "conviccion": 4,
-        "tecnico": "El sistema detecta tendencia bajista con pico de volumen y propone venta en 7059.0. Sin embargo, la fuerza de tendencia es muy débil (0.21) y el RSI se mantiene neutral en 57.6.",
-        "economico": "Los fundamentales son sólidos, con márgenes netos del 19.58%, ROE del 19.31% y crecimiento del beneficio del 46.9%. El precio objetivo de analistas (7526.83) se sitúa por encima del precio actual.",
-        "conflicto": "La señal técnica propone ponerse corto en una empresa con beneficios crecientes, baja valoración y revisiones de beneficio al alza.",
-        "riesgos": [
-          "El pico de actividad y la caída de precio coinciden con la fecha ex-dividendo del 13 de agosto, distorsionando la lectura bajista",
-          "Los principales índices bursátiles operan en régimen alcista",
-          "Erste Group acaba de revisar al alza las estimaciones de BPA"
-        ],
-        "invalidaria": "Un cierre diario por encima del stop loss en 7410.68 o la superación de la media móvil inmediata.",
-        "momento": "El movimiento bajista reciente responde al descuento del dividendo semestral y no a deterioro estructural del negocio.",
-        "noticia_clave": "La acción cotiza ex-dividendo desde el 13 de agosto y Erste Group elevó sus previsiones de beneficio para 2026.",
-        "resumen": "Señal de venta descartada por fundamentación sólida y caída distorsionada por el corte de dividendo.",
-        "modelo": "gemini-flash-latest",
-        "tiene_fundamentales": true,
-        "tiene_noticias": true,
-        "noticias": "* **Acuerdo energético y de subsidios (12-13 de agosto de 2026):** Rio Tinto aseguró un acuerdo respaldado por 2.500 millones de AUD con los gobiernos de Australia y Nueva Gales del Sur para garantizar el suministro eléctrico de la fundición Tomago Aluminium hasta 2038, que incluirá una inversión de 1.100 millones de AUD por parte de la planta y un contrato de energía 100% renovable a partir de 2033.\n* **Fecha ex-dividendo (13 de agosto de 2026):** La acción de Rio Tinto plc comenzó a cotizar ex-dividendo en la Bolsa de Londres para la liquidación de su dividendo a cuenta semestral.\n* **Revisiones de analistas (14 de agosto de 2026):** Erste Group ajustó al alza sus estimaciones de beneficio por acción (BPA) para la compañía a 8,36 USD para el ejercicio 2026 y a 8,40 USD para 2027."
-      }
+      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 2.65x el promedio de 20 velas."
     },
     {
       "symbol": "LUNR",
@@ -74,22 +54,21 @@
       "ai": {
         "veredicto": "descartar",
         "conviccion": 4,
-        "tecnico": "El sistema marca una venta corta por tendencia bajista de fondo pese a la subida diaria del 8,26% con volumen anormal. El RSI diario está en 76,4, lo que refleja sobrecompra extrema inmediata sobre la resistencia previa.",
-        "economico": "La empresa opera con flujo de caja negativo (-114,87M) y márgenes netos de -26,64%, pero muestra un crecimiento de ingresos del 309,8% y un consenso unánime de compra con precio objetivo en 29,5. El 27,14% del free float está en posiciones cortas y el 93,75% en manos institucionales.",
-        "conflicto": "El sistema técnico propone vender en corto mientras la empresa mantiene fuerte crecimiento de ventas, respaldo unánime de analistas y un elevado porcentaje de posiciones cortas que añade riesgo de estrangulamiento.",
+        "tecnico": "El sistema marca venta apoyado en medias bajistas, pero el precio rebotó un 8.26% en el día con volumen elevado. El RSI se sitúa en 76.4 mostrando fuerte presión compradora inmediata.",
+        "economico": "La compañía no es rentable, con márgenes netos de -26.64% y flujo de caja libre negativo de -114.87 millones. No obstante, los ingresos crecieron un 309.8% y el backlog alcanzó un récord de 1.800 millones.",
+        "conflicto": "El consenso de analistas en compra fuerte con precio objetivo de 29.5 y el récord de pedidos contradicen directamente la señal técnica de venta.",
         "riesgos": [
-          "Elevado porcentaje de cortos (27,14% del free float) que expone la posición a un cierre forzoso alcista.",
-          "Reiteración de guía anual de hasta 1.000 millones y cartera récord de pedidos por 1.800 millones anunciada recientemente.",
-          "El precio objetivo medio de los analistas (29,5) se sitúa un 55% por encima del precio actual."
+          "Elevado porcentaje de posiciones cortas del 27.14% que expone a un estrangulamiento de cortos",
+          "Alta volatilidad reflejada en una beta de 1.829 y un ATR de 1.52"
         ],
-        "invalidaria": "Un cierre diario por encima del stop loss fijado en 21,74.",
-        "momento": "No conviene entrar corto justo tras la confirmación de cartera récord y guía anual positiva, sumado a un fuerte rebote del 8,26% con alto volumen.",
-        "noticia_clave": "Intuitive Machines presentó resultados por debajo de lo esperado pero reafirmó su guía anual de hasta 1.000 millones y reportó una cartera de pedidos récord de 1.800 millones.",
-        "resumen": "Señal de venta descartada por alto riesgo de estrangulamiento de cortos tras la confirmación de pedidos récord y fuerte volumen comprador.",
+        "invalidaria": "Ruptura del stop loss en 21.74 o consolidación del precio por encima de los 20 dólares con volumen sostenido.",
+        "momento": "La empresa acaba de publicar resultados con fuerte aumento de cartera de pedidos; intentar vender en corto en pleno rebote del 8% tras noticias expansivas es inoportuno.",
+        "noticia_clave": "Resultados del 2T mostraron ingresos multiplicados por cuatro y cartera de pedidos récord de 1.800 millones de dólares.",
+        "resumen": "Descartar venta: un 27% de cortos y un backlog récord tras resultados convierten la posición corta en un riesgo innecesario.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": true,
         "tiene_noticias": true,
-        "noticias": "* El **13 de agosto de 2026**, la compañía presentó sus resultados financieros del segundo trimestre con ingresos de aproximadamente 206 millones de dólares y una pérdida neta de -0,29 dólares por acción, quedando por debajo del consenso de analistas.\n* Ese mismo **13 de agosto**, la dirección reafirmó su guía de ingresos para el año 2026 en el rango de 900 a 1.000 millones de dólares con meta de EBITDA ajustado positivo, e informó una cartera de pedidos récord (*backlog*) de 1.800 millones de dólares.\n* Entre el **13 y el 14 de agosto de 2026**, casas de análisis como Stifel, Roth y Deutsche Bank mantuvieron sus calificaciones de compra (\"Buy\"), aunque ajustaron a la baja sus precios objetivo debido a la volatilidad del sector."
+        "noticias": "* **Resultados del 2T 2026 (13 de agosto):** La compañía reportó ingresos de 206,2 millones de dólares (más del cuádruple interanual), pero registró una pérdida neta de 46,6 millones de dólares (-0,29 $ por acción), por debajo de lo estimado por el consenso de analistas.\n* **Cartera de pedidos y contratos (13 de agosto):** Su *backlog* alcanzó un récord de 1.800 millones de dólares, impulsado por nuevas adjudicaciones en satélites comerciales GEO y programas de defensa y exploración lunar.\n* **Guía financiera 2026 (13 de agosto):** La dirección ratificó su guía de ingresos anuales de entre 900 y 1.000 millones de dólares, proyectando alcanzar un EBITDA ajustado positivo para el año completo.\n* **Revisiones de analistas (14 de agosto):** Firmas como Stifel, Roth y Deutsche Bank mantuvieron sus recomendaciones de compra sobre el valor, aunque recortaron sus precios objetivo ante la volatilidad reciente del sector."
       }
     },
     {
@@ -114,22 +93,21 @@
       "ai": {
         "veredicto": "matizar",
         "conviccion": 3,
-        "tecnico": "El setup plantea una compra por tendencia alcista y pico de volumen relativo de 2.15, con RSI neutral en 45.0. No obstante, el take profit propuesto en 572.07 se ubica por encima del nivel de resistencia técnica situado en 562.81.",
-        "economico": "Los fundamentales muestran un crecimiento de ingresos del 48.2% y de beneficio del 138.9%, junto a un flujo de caja libre positivo de 12.878 millones. El margen neto es reducido (2.55%) y la deuda sobre fondos propios se sitúa en 95.12%.",
+        "tecnico": "Estructura alcista con pico de volumen y fuerza de tendencia de 1.39 ATR. El RSI se sitúa en 45.0, pero el objetivo de beneficio (572.07) está colocado por encima de la resistencia técnica identificada en 562.81.",
+        "economico": "Muestra un crecimiento de beneficios del 138.9% y un flujo de caja libre de 12.878 millones con PER estimado de 10.23. La deuda sobre fondos propios es del 95.12% y el margen neto se sitúa en un estrecho 2.55%.",
         "conflicto": null,
         "riesgos": [
-          "El objetivo de toma de beneficios (572.07) supera la resistencia calculada en 562.81",
-          "Tensión operativa por el cierre patronal de 800 trabajadores en la refinería de Whiting",
-          "Margen neto bajo del 2.55% frente a una ratio deuda/fondos propios de 95.12%"
+          "El take profit (572.07) se sitúa por encima de la resistencia clave de 562.81.",
+          "El margen neto es reducido (2.55%) frente a un nivel de endeudamiento del 95.12%."
         ],
-        "invalidaria": "Un cierre diario por debajo del stop loss en 495.58 o la pérdida del soporte en 450.53.",
-        "momento": "No hay presión por presentación de resultados (restan 75 días), pero la toma de beneficios técnica exige superar previamente la resistencia en 562.81.",
-        "noticia_clave": "BP obtuvo una licencia en Venezuela para el proyecto gasífero Loran, mientras afronta un conflicto laboral con 800 trabajadores en su refinería de Whiting.",
-        "resumen": "Señal alcista respaldada por crecimiento y volumen, pero matizada porque el objetivo de precio excede la resistencia técnica de 562.81.",
+        "invalidaria": "Un cierre por debajo del stop loss en 495.58 o el rechazo explícito en la resistencia de 562.81.",
+        "momento": "Hay 74 días hasta la publicación de resultados y el volumen acompaña el proceso de desinversión de activos anunciado recientemente.",
+        "noticia_clave": "Aparición de postores para la compra de activos en el Mar del Norte valorados en 2.500 millones de libras dentro de su plan de desinversión.",
+        "resumen": "Señal alcista respaldada por fundamentales y volumen, pero condicionada por un objetivo de precio situado por encima de la resistencia inmediata.",
         "modelo": "gemini-flash-latest",
         "tiene_fundamentales": true,
         "tiene_noticias": true,
-        "noticias": "* El 12–13 de agosto de 2026, BP obtuvo una licencia del gobierno de Venezuela para la exploración y producción de la fase 2 del yacimiento de gas *offshore* Loran en consorcio con socios internacionales.\n* El 13 de agosto de 2026, se formalizó un contrato con Emerson para la automatización del proyecto de compresión en el yacimiento de gas Shah Deniz operado por BP.\n* Hacia el 10 de agosto de 2026, continuaba la tensión laboral por el cierre patronal (*lockout*) de 800 trabajadores en su refinería de Whiting (EE. UU.), lo que mantiene el foco sobre la operatividad del complejo."
+        "noticias": "* El 10 de agosto de 2026, se reportó que BP acordó la venta de una participación del 20% en el campo de gas Cocuina a la empresa estatal NGC de Trinidad y Tobago.\n* El 16 de agosto de 2026, trascendió que surgieron postores interesados en sus activos del Mar del Norte tras la apertura de los documentos formales de venta por un paquete valorado en 2.500 millones de libras.\n* Ambos procesos forman parte de la estrategia de desinversión y reestructuración de activos de la compañía."
       }
     }
   ]
