@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T20:41:26.570263+00:00",
+  "generated_at": "2026-08-18T21:39:22.986653+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -18,7 +18,7 @@
       "rr_ratio": 2.74,
       "rsi": 28.8,
       "atr": 1.65,
-      "activity_ratio": 1.17,
+      "activity_ratio": 0.39,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -293,7 +293,7 @@
       "rr_ratio": 1.8,
       "rsi": 24.7,
       "atr": 3.45,
-      "activity_ratio": 1.33,
+      "activity_ratio": 0.79,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -348,7 +348,7 @@
       "rr_ratio": 3.26,
       "rsi": 83.8,
       "atr": 3.41,
-      "activity_ratio": 0.58,
+      "activity_ratio": 0.6,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -360,7 +360,7 @@
       "direction": "sell",
       "signal": "OBSERVAR",
       "spark": [
-        0.1758,
+        0.1697,
         0.2061,
         0.2,
         0.3333,
@@ -478,7 +478,7 @@
       "body": "Volumen <strong>2.61x</strong> lo habitual, sin setup válido todavía."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada activa en el radar. En <strong class='lo'>MSFT</strong> el sistema marca venta pero con un RSI de 24.7, una contradicción directa entre la dirección propuesta y la sobreventa técnica que obliga a descartar la idea. Otros activos como NVDA y BP registran extremos de RSI en 28.8 y 83.8 sin habilitar posiciones. RKLB y SNOW operan en negativo y se mantienen exclusivamente en observación. Recordá que todos estos niveles son referencias técnicas que no están validadas contra histórico.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. La única alerta corresponde a <strong class='lo'>MSFT</strong> bajo estado de precaución, donde se plantea una venta pese a registrar un RSI en 24.7 que apunta a sobreventa. En el resto de valores bajo observación predominan las contradicciones, como la señal de venta en BP con suba del 2.75% y RSI en 83.8, o las compras en NVDA y RKLB en plena caída. Con este panorama, la indicación directa es descartar entradas forzadas y esperar confirmación. Recordá que todos estos niveles técnicos no están validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-18T06:01:18.939965+00:00",
     "universe_size": 134,
