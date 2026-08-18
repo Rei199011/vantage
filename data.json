@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T21:42:37.261378+00:00",
+  "generated_at": "2026-08-18T07:04:55.730986+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -336,61 +336,6 @@
       "promoted": false
     },
     {
-      "symbol": "RIO.L",
-      "display_symbol": "RIO",
-      "name": "Rio Tinto",
-      "asset_class": "Acción",
-      "price": 7133.0,
-      "change_pct": 0.85,
-      "entry": 7133.0,
-      "take_profit": 6996.46,
-      "stop_loss": 7208.86,
-      "rr_ratio": 1.8,
-      "rsi": 62.8,
-      "atr": 42.14,
-      "activity_ratio": 0.89,
-      "activity_label": "volumen",
-      "activity_spike": false,
-      "volume_based": true,
-      "trend_up": false,
-      "trend_down": true,
-      "trend_strength": 5.04,
-      "support": 7033.0,
-      "resistance": 7638.0,
-      "direction": "sell",
-      "signal": "OBSERVAR",
-      "spark": [
-        0.8773,
-        0.9056,
-        1.0,
-        0.8603,
-        0.883,
-        0.6905,
-        0.1755,
-        0.2038,
-        0.1528,
-        0.0,
-        0.0283,
-        0.1132,
-        0.3905,
-        0.3056,
-        0.1585,
-        0.6592,
-        0.5151,
-        0.4811,
-        0.6002,
-        0.4358,
-        0.283,
-        0.3396,
-        0.4415,
-        0.4981
-      ],
-      "timeframe": "60m",
-      "last_candle": "2026-08-17T16:00:00+01:00",
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista).",
-      "promoted": true
-    },
-    {
       "symbol": "BP.L",
       "display_symbol": "BP",
       "name": "BP",
@@ -533,18 +478,18 @@
       "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 225.16, stop 222.38."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. La única alerta operativa es <strong class='lo'>MSFT</strong> con orden de venta tras caer un 3.0%, aunque su RSI en 20.6 choca de frente con el soporte inmediato de 478.41. En PLTR el filtro marca compra pese a registrar un RSI extremo de 13.3, mientras que en SNOW sugiere venta tras una subida de 0.37%. Con estas discrepancias técnicas y sin señales limpias, la decisión prudente es descartar ejecuciones. Recordá que estos niveles se generan automáticamente y no están validados contra histórico.",
+  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>MSFT</strong>: el RSI está en 20.6, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: MSFT -3.0%, RKLB +2.33%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
   "radar": {
-    "generated_at": "2026-08-17T06:05:09.301840+00:00",
+    "generated_at": "2026-08-18T06:01:18.939965+00:00",
     "universe_size": 134,
-    "scanned": 127,
+    "scanned": 125,
     "candidates": 3,
     "timeframe": "1d",
-    "reviewed": 2,
+    "reviewed": 3,
     "portfolio": {
       "concentracion": null,
       "contradicciones": null,
-      "advertencia": "LUNR ya cuenta con veredicto de descartar y no existen datos de sector para validar la correlación entre las señales de compra y venta.",
+      "advertencia": "Dos de las tres señales tienen veredicto de descartar y la única restante requiere matices, sin validación histórica del sistema.",
       "grupos": []
     },
     "top": [
@@ -566,7 +511,27 @@
         "activity_label": "volumen",
         "volume_based": true,
         "score": 89.5,
-        "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 2.65x el promedio de 20 velas."
+        "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 2.65x el promedio de 20 velas.",
+        "ai": {
+          "veredicto": "descartar",
+          "conviccion": 4,
+          "tecnico": "El sistema marca venta con una fuerza de tendencia bajista mínima de 0.21 ATR. El RSI se sitúa en 57.6 en zona neutral y el volumen registró un pico de 2.65 veces lo habitual.",
+          "economico": "Los fundamentales muestran un crecimiento de beneficio del 46.9%, márgenes operativos del 28.05% y un flujo de caja libre positivo de 3595 millones. El precio objetivo de analistas (7524.8) se sitúa por encima del precio de cotización actual (7059.0).",
+          "conflicto": "La señal técnica bajista choca directamente con fundamentales sólidos, alto crecimiento de beneficios y un precio objetivo de consenso superior a la cotización actual.",
+          "riesgos": [
+            "La caída reciente y el pico de volumen coinciden con la fecha de corte de dividendo (ex-dividend) del 13 de agosto de 2026",
+            "La mayoría de los índices globales de referencia operan en régimen alcista",
+            "La fuerza de la tendencia técnica bajista calculada es casi nula (0.21)"
+          ],
+          "invalidaria": "Un movimiento del precio por encima del nivel de stop loss en 7410.68.",
+          "momento": "El ajuste de precio y el volumen anormal están distorsionados por la fecha ex-dividendo reciente, lo que falsea el impulso bajista.",
+          "noticia_clave": "El 13 de agosto de 2026 operó la fecha de corte de dividendo de las acciones ordinarias.",
+          "resumen": "Se descarta la venta porque el movimiento bajista está distorsionado por el corte de dividendo y choca con fundamentales sólidos.",
+          "modelo": "gemini-flash-latest",
+          "tiene_fundamentales": true,
+          "tiene_noticias": true,
+          "noticias": "* El 13 de agosto de 2026, Rio Tinto anunció un acuerdo clave con el gobierno federal australiano y el de Nueva Gales del Sur para garantizar el suministro eléctrico de la fundición Tomago Aluminium hasta 2038, respaldado por un paquete gubernamental de 2.500 millones de AUD y un compromiso de inversión del consorcio de 1.100 millones de AUD.\n* Ese mismo 13 de agosto de 2026 se cumplió la fecha de corte para el dividendo a cuenta (*ex-dividend date*) de las acciones ordinarias de la compañía.\n* El 12 de agosto de 2026 se notificaron suspensiones operativas preventivas en sus proyectos de litio en el salar de Hombre Muerto (Argentina) a causa de un temporal de nieve."
+        }
       },
       {
         "symbol": "LUNR",
@@ -590,21 +555,22 @@
         "ai": {
           "veredicto": "descartar",
           "conviccion": 4,
-          "tecnico": "El sistema marca venta apoyado en medias bajistas, pero el precio rebotó un 8.26% en el día con volumen elevado. El RSI se sitúa en 76.4 mostrando fuerte presión compradora inmediata.",
-          "economico": "La compañía no es rentable, con márgenes netos de -26.64% y flujo de caja libre negativo de -114.87 millones. No obstante, los ingresos crecieron un 309.8% y el backlog alcanzó un récord de 1.800 millones.",
-          "conflicto": "El consenso de analistas en compra fuerte con precio objetivo de 29.5 y el récord de pedidos contradicen directamente la señal técnica de venta.",
+          "tecnico": "El sistema detecta venta por estructura bajista previa, pero la sesión cierra con una subida del 8.26% y volumen 1.8 veces superior a la media. El RSI se sitúa en 76.4, reflejando fuerte impulso comprador reciente.",
+          "economico": "La compañía opera con márgenes negativos (-26.64%) y flujo de caja libre deficitario de -114.8 millones de dólares. En contraste, los ingresos crecen un 309.8% interanual y el consenso de 8 analistas es de compra fuerte con precio objetivo de 29.5.",
+          "conflicto": "La señal técnica propone ponerse en corto justo cuando la empresa reporta crecimiento acelerado de ingresos y catalizadores comerciales relevantes.",
           "riesgos": [
-            "Elevado porcentaje de posiciones cortas del 27.14% que expone a un estrangulamiento de cortos",
-            "Alta volatilidad reflejada en una beta de 1.829 y un ATR de 1.52"
+            "Un 27.14% del capital flotante está vendido en corto, elevando el riesgo de recompras forzadas ante subidas de precio.",
+            "Entrada en corto contra una subida del 8.26% respaldada por volumen inusual.",
+            "Ventas en corto contra contratos recién adjudicados por 600 millones de dólares."
           ],
-          "invalidaria": "Ruptura del stop loss en 21.74 o consolidación del precio por encima de los 20 dólares con volumen sostenido.",
-          "momento": "La empresa acaba de publicar resultados con fuerte aumento de cartera de pedidos; intentar vender en corto en pleno rebote del 8% tras noticias expansivas es inoportuno.",
-          "noticia_clave": "Resultados del 2T mostraron ingresos multiplicados por cuatro y cartera de pedidos récord de 1.800 millones de dólares.",
-          "resumen": "Descartar venta: un 27% de cortos y un backlog récord tras resultados convierten la posición corta en un riesgo innecesario.",
+          "invalidaria": "Un cierre de sesión por encima del nivel de stop loss fijado en 21.74.",
+          "momento": "Momento inadecuado para vender en corto: coincide con la asimilación de un nuevo contrato millonario y la reciente publicación de resultados con cartera récord de pedidos.",
+          "noticia_clave": "Adjudicación de un contrato de más de 600 millones de dólares para diseñar satélites y anuncio de cartera récord de pedidos por 1.800 millones.",
+          "resumen": "Descartar la posición corta: la señal técnica va contra noticias de contratos millonarios y un volumen comprador elevado.",
           "modelo": "gemini-flash-latest",
           "tiene_fundamentales": true,
           "tiene_noticias": true,
-          "noticias": "* **Resultados del 2T 2026 (13 de agosto):** La compañía reportó ingresos de 206,2 millones de dólares (más del cuádruple interanual), pero registró una pérdida neta de 46,6 millones de dólares (-0,29 $ por acción), por debajo de lo estimado por el consenso de analistas.\n* **Cartera de pedidos y contratos (13 de agosto):** Su *backlog* alcanzó un récord de 1.800 millones de dólares, impulsado por nuevas adjudicaciones en satélites comerciales GEO y programas de defensa y exploración lunar.\n* **Guía financiera 2026 (13 de agosto):** La dirección ratificó su guía de ingresos anuales de entre 900 y 1.000 millones de dólares, proyectando alcanzar un EBITDA ajustado positivo para el año completo.\n* **Revisiones de analistas (14 de agosto):** Firmas como Stifel, Roth y Deutsche Bank mantuvieron sus recomendaciones de compra sobre el valor, aunque recortaron sus precios objetivo ante la volatilidad reciente del sector."
+          "noticias": "* **17 de agosto:** Intuitive Machines anunció la adjudicación de un contrato valorado en más de 600 millones de dólares con un cliente confidencial para diseñar y construir múltiples satélites de comunicaciones sobre su plataforma IM 1300.\n* **13 de agosto:** La compañía presentó los resultados financieros del segundo trimestre de 2026, destacando un fuerte crecimiento interanual de ingresos y una cartera de pedidos (*backlog*) récord de 1.800 millones de dólares.\n* **13 de agosto:** La dirección ratificó su guía financiera anual, proyectando ingresos de al menos 900 millones de dólares para el ejercicio completo."
         }
       },
       {
@@ -629,21 +595,22 @@
         "ai": {
           "veredicto": "matizar",
           "conviccion": 3,
-          "tecnico": "Estructura alcista con pico de volumen y fuerza de tendencia de 1.39 ATR. El RSI se sitúa en 45.0, pero el objetivo de beneficio (572.07) está colocado por encima de la resistencia técnica identificada en 562.81.",
-          "economico": "Muestra un crecimiento de beneficios del 138.9% y un flujo de caja libre de 12.878 millones con PER estimado de 10.23. La deuda sobre fondos propios es del 95.12% y el margen neto se sitúa en un estrecho 2.55%.",
+          "tecnico": "Estructura alcista con repunte de volumen del doble de lo habitual y RSI en 45. Sin embargo, el objetivo de toma de beneficios (572.07) está situado por encima del nivel de resistencia técnica calculado (562.81).",
+          "economico": "Crecimiento interanual de beneficios del 138.9% e ingresos al alza un 48.2%, con ratio EV/EBITDA de 3.42 y flujo de caja libre sólido. El margen neto es ajustado (2.55%) y el ratio de endeudamiento sobre fondos propios se sitúa en 95.1%.",
           "conflicto": null,
           "riesgos": [
-            "El take profit (572.07) se sitúa por encima de la resistencia clave de 562.81.",
-            "El margen neto es reducido (2.55%) frente a un nivel de endeudamiento del 95.12%."
+            "El nivel de toma de beneficios (572.07) supera la resistencia inmediata de 562.81",
+            "Endeudamiento elevado con ratio deuda/fondos propios del 95.12%",
+            "Margen neto estrecho del 2.55%"
           ],
-          "invalidaria": "Un cierre por debajo del stop loss en 495.58 o el rechazo explícito en la resistencia de 562.81.",
-          "momento": "Hay 74 días hasta la publicación de resultados y el volumen acompaña el proceso de desinversión de activos anunciado recientemente.",
-          "noticia_clave": "Aparición de postores para la compra de activos en el Mar del Norte valorados en 2.500 millones de libras dentro de su plan de desinversión.",
-          "resumen": "Señal alcista respaldada por fundamentales y volumen, pero condicionada por un objetivo de precio situado por encima de la resistencia inmediata.",
+          "invalidaria": "Un cierre por debajo del stop loss de 495.58 o el rechazo explícito en la resistencia de 562.81.",
+          "momento": "A 73 días de los próximos resultados no hay riesgo inminente de balance, pero las recientes revisiones al alza y el acuerdo de gas en Venezuela podrían estar ya incorporados en el repunte de volumen.",
+          "noticia_clave": "Firma de acuerdos con Venezuela el 12 de agosto para la licencia de producción de gas marino en el proyecto Loran Fase 2.",
+          "resumen": "Señal técnicamente alineada con fundamentales y flujo de noticias positivo, pero exige vigilar la resistencia intermedia en 562.81 antes del objetivo.",
           "modelo": "gemini-flash-latest",
           "tiene_fundamentales": true,
           "tiene_noticias": true,
-          "noticias": "* El 10 de agosto de 2026, se reportó que BP acordó la venta de una participación del 20% en el campo de gas Cocuina a la empresa estatal NGC de Trinidad y Tobago.\n* El 16 de agosto de 2026, trascendió que surgieron postores interesados en sus activos del Mar del Norte tras la apertura de los documentos formales de venta por un paquete valorado en 2.500 millones de libras.\n* Ambos procesos forman parte de la estrategia de desinversión y reestructuración de activos de la compañía."
+          "noticias": "* El 12 de agosto de 2026, BP y el gobierno de Venezuela firmaron acuerdos para avanzar en el desarrollo de gas marino, otorgándole a la compañía la licencia de exploración y producción para el proyecto Loran Fase 2.\n* Entre el 11 y el 13 de agosto de 2026, firmas de análisis revisaron al alza sus estimaciones de beneficios para el ejercicio fiscal tras la reciente presentación de resultados trimestrales.\n* El 11 de agosto de 2026, la empresa reportó ante la Bolsa de Londres notificaciones regulatorias de transacciones de acciones por parte de miembros de la dirección (PDMR)."
         }
       }
     ]
@@ -672,7 +639,7 @@
         ],
         [
           "Símbolos",
-          "8 de 6 respondiendo"
+          "7 de 6 respondiendo"
         ]
       ],
       "pill": "Solo lectura",
@@ -684,7 +651,7 @@
       "rows": [
         [
           "Con volumen",
-          "8 símbolos"
+          "7 símbolos"
         ],
         [
           "Por rango",
@@ -740,7 +707,7 @@
         ],
         [
           "Revisados",
-          "2 candidatos del radar"
+          "3 candidatos del radar"
         ],
         [
           "Alcance",
