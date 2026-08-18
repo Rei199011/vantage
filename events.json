@@ -1,5 +1,12 @@
 [
   {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSFT",
+    "time": "2026-08-18T17:44:13.655090+00:00",
+    "body": "RSI en <strong>22.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Señal",
     "kind_class": "",
     "symbol": "NVDA",
@@ -75,12 +82,5 @@
     "symbol": "AAPL",
     "time": "2026-08-18T13:57:31.897088+00:00",
     "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:2.49. Entrada 306.86, stop 309.37."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSFT",
-    "time": "2026-08-18T13:57:31.897088+00:00",
-    "body": "RSI en <strong>14.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
