@@ -1,5 +1,12 @@
 [
   {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "BP",
+    "time": "2026-08-18T13:08:08.538383+00:00",
+    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:3.05. Entrada 532.5, stop 538.24."
+  },
+  {
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "MSFT",
@@ -75,12 +82,5 @@
     "symbol": "LUNR",
     "time": "2026-08-16T17:55:48.689080+00:00",
     "body": "RSI en <strong>71.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-16T14:56:47.728287+00:00",
-    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 225.16, stop 222.38."
   }
 ]
