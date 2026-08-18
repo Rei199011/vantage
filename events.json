@@ -2,6 +2,13 @@
   {
     "kind": "Precaución",
     "kind_class": "sentiment",
+    "symbol": "MSFT",
+    "time": "2026-08-18T19:41:40.776587+00:00",
+    "body": "RSI en <strong>25.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
     "symbol": "AAPL",
     "time": "2026-08-18T18:57:35.003031+00:00",
     "body": "RSI en <strong>71.2</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -75,12 +82,5 @@
     "symbol": "BP",
     "time": "2026-08-18T15:47:32.359647+00:00",
     "body": "RSI en <strong>84.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSFT",
-    "time": "2026-08-18T14:53:10.606688+00:00",
-    "body": "RSI en <strong>17.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
