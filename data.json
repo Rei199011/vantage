@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T09:49:55.589969+00:00",
+  "generated_at": "2026-08-19T10:46:55.967930+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -533,7 +533,7 @@
       "body": "RSI en <strong>19.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada activa en el panel, por lo que la postura general es de observación. Las únicas alertas corresponden a <strong class='lo'>MSFT</strong> y <strong class='lo'>RIVN</strong>, ambas catalogadas en precaución para venta. En <strong class='lo'>MSFT</strong> se observa una contradicción explícita, ya que se plantea una venta pese a registrar una suba del 0,29% y un RSI en 24,7. El resto de los valores evaluados no presentan condiciones para operar en este momento. Recordá que todos estos niveles provienen de un filtro técnico sin validar contra datos históricos.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el radar, por lo que la mayoría del tablero permanece en simple observación. En <strong class='lo'>MSFT</strong> el sistema marca venta con precaución, pero su RSI de 24.7 choca de frente con la señal al estar en sobreventa cerca del soporte de 477.15. Por su parte, <strong class='lo'>RIVN</strong> también figura en precaución para venta en 14.81 con un ratio de actividad bajo de 0.68. Con este panorama contradictorio y sin señales operativas firmes, la mejor opción es descartar movimientos hoy. Recordá que todos estos niveles técnicos fueron calculados sin validación histórica.",
   "radar": {
     "generated_at": "2026-08-19T06:02:34.523408+00:00",
     "universe_size": 134,
