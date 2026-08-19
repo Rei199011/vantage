@@ -3,6 +3,34 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "SNOW",
+    "time": "2026-08-19T16:47:22.246024+00:00",
+    "body": "RSI en <strong>22.2</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "RKLB",
+    "time": "2026-08-19T16:47:22.246024+00:00",
+    "body": "RSI en <strong>20.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "AAPL",
+    "time": "2026-08-19T16:47:22.246024+00:00",
+    "body": "RSI en <strong>76.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "V",
+    "time": "2026-08-19T16:47:22.246024+00:00",
+    "body": "RSI en <strong>75.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "SNOW",
     "time": "2026-08-19T15:47:18.832017+00:00",
     "body": "RSI en <strong>22.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
@@ -54,33 +82,5 @@
     "symbol": "AAPL",
     "time": "2026-08-19T14:54:22.257469+00:00",
     "body": "RSI en <strong>85.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "AAPL",
-    "time": "2026-08-19T14:54:22.257469+00:00",
-    "body": "Volumen <strong>3.04x</strong> lo habitual, sin setup válido todavía."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "V",
-    "time": "2026-08-19T14:54:22.257469+00:00",
-    "body": "RSI en <strong>76.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-19T13:58:18.646955+00:00",
-    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:2.73. Entrada 218.82, stop 215.48."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "PLTR",
-    "time": "2026-08-19T13:58:18.646955+00:00",
-    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:4.92. Entrada 172.07, stop 175.53."
   }
 ]
