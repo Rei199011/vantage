@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T08:56:10.280482+00:00",
+  "generated_at": "2026-08-19T09:49:55.589969+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -533,7 +533,7 @@
       "body": "RSI en <strong>19.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>MSFT</strong>: el RSI está en 24.7, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>RIVN</strong>: el RSI está en 30.0, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: RKLB -3.56%, NVDA -2.33%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el panel, por lo que la postura general es de observación. Las únicas alertas corresponden a <strong class='lo'>MSFT</strong> y <strong class='lo'>RIVN</strong>, ambas catalogadas en precaución para venta. En <strong class='lo'>MSFT</strong> se observa una contradicción explícita, ya que se plantea una venta pese a registrar una suba del 0,29% y un RSI en 24,7. El resto de los valores evaluados no presentan condiciones para operar en este momento. Recordá que todos estos niveles provienen de un filtro técnico sin validar contra datos históricos.",
   "radar": {
     "generated_at": "2026-08-19T06:02:34.523408+00:00",
     "universe_size": 134,
