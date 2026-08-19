@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T20:46:32.606629+00:00",
+  "generated_at": "2026-08-19T21:42:16.070270+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -128,7 +128,7 @@
       "rr_ratio": 1.8,
       "rsi": 41.2,
       "atr": 4.07,
-      "activity_ratio": 1.89,
+      "activity_ratio": 1.88,
       "activity_label": "volumen",
       "activity_spike": true,
       "volume_based": true,
@@ -167,7 +167,7 @@
       ],
       "timeframe": "60m",
       "last_candle": "2026-08-19T15:30:00-04:00",
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.89x el promedio de 20 velas.",
+      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 1.88x el promedio de 20 velas.",
       "promoted": false
     },
     {
@@ -183,7 +183,7 @@
       "rr_ratio": 1.8,
       "rsi": 18.4,
       "atr": 1.67,
-      "activity_ratio": 0.62,
+      "activity_ratio": 0.83,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -238,7 +238,7 @@
       "rr_ratio": 1.8,
       "rsi": 77.8,
       "atr": 2.45,
-      "activity_ratio": 0.66,
+      "activity_ratio": 1.12,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -293,7 +293,7 @@
       "rr_ratio": 1.8,
       "rsi": 63.5,
       "atr": 3.08,
-      "activity_ratio": 0.86,
+      "activity_ratio": 1.16,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -341,7 +341,7 @@
       "name": "Visa",
       "asset_class": "Acción",
       "price": 365.73,
-      "change_pct": 0.37,
+      "change_pct": 0.38,
       "entry": 365.73,
       "take_profit": 373.35,
       "stop_loss": 361.49,
@@ -376,7 +376,7 @@
         0.5916,
         0.6276,
         0.6045,
-        0.5053,
+        0.5021,
         0.9248,
         0.9599,
         1.0,
@@ -533,7 +533,7 @@
       "body": "RSI en <strong>73.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "<strong class='hi'>SNOW</strong> presenta un setup de venta: entrada en 325.33, take profit en 312.13 y stop loss en 332.66 (riesgo/beneficio 1:1.8), con volumen 1.89x lo habitual. Cautela en <strong class='lo'>NVDA</strong>: el RSI está en 23.0, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 18.4, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>AAPL</strong>: el RSI está en 77.8, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: RIVN +6.21%, RKLB -4.21%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
+  "brief": "<strong class='hi'>SNOW</strong> presenta un setup de venta: entrada en 325.33, take profit en 312.13 y stop loss en 332.66 (riesgo/beneficio 1:1.8), con volumen 1.88x lo habitual. Cautela en <strong class='lo'>NVDA</strong>: el RSI está en 23.0, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 18.4, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>AAPL</strong>: el RSI está en 77.8, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: RIVN +6.21%, RKLB -4.21%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
   "radar": {
     "generated_at": "2026-08-19T06:02:34.523408+00:00",
     "universe_size": 134,
