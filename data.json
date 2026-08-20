@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T07:57:34.457591+00:00",
+  "generated_at": "2026-08-20T08:57:27.234419+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -478,7 +478,7 @@
       "body": "RSI en <strong>73.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "La única señal de entrada hoy es de venta en <strong class='hi'>SNOW</strong> a 325.33, respaldada por un ratio de actividad de 1.88 y toma de beneficios en 312.13. Conviene descartar las ventas automáticas en <strong class='lo'>NVDA</strong> y <strong class='lo'>RKLB</strong>, donde los valores de RSI en 23.0 y 18.4 entran en contradicción directa con la apertura de posiciones cortas junto a soporte. En <strong class='lo'>AAPL</strong> ocurre lo opuesto: la señal compradora se enfrenta a un RSI de 77.8 a escasa distancia de la resistencia en 319.28. Los demás activos de la tabla se mantienen en observación sin disparadores vigentes. Recordá que todos estos parámetros son cálculos técnicos no validados contra histórico.",
+  "brief": "El sistema genera hoy una única señal de venta en <strong class='hi'>SNOW</strong> con un ratio de actividad de 1.88. En contraste, las alertas de venta en <strong class='lo'>NVDA</strong> y <strong class='lo'>RKLB</strong> muestran RSI de 23.0 y 18.4, niveles sobrevendidos que contradicen la dirección propuesta. Ocurre lo opuesto en <strong class='lo'>AAPL</strong>, donde la compra coincide con un RSI en 77.8 cerca de su resistencia en 319.28. Es preferible descartar estas operaciones donde el indicador choca con la señal. Recordá que todos estos niveles técnicos no están validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-20T06:02:56.944624+00:00",
     "universe_size": 134,
