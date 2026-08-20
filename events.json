@@ -3,6 +3,27 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "RKLB",
+    "time": "2026-08-20T19:46:36.712535+00:00",
+    "body": "RSI en <strong>15.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "AAPL",
+    "time": "2026-08-20T19:46:36.712535+00:00",
+    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 312.52, stop 307.98."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-20T19:46:36.712535+00:00",
+    "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "RKLB",
     "time": "2026-08-20T18:59:54.361942+00:00",
     "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
@@ -61,26 +82,5 @@
     "symbol": "NVDA",
     "time": "2026-08-20T14:55:46.007093+00:00",
     "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 217.57, stop 220.92."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "PLTR",
-    "time": "2026-08-20T14:55:46.007093+00:00",
-    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 174.92, stop 179.3."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-20T14:55:46.007093+00:00",
-    "body": "RSI en <strong>13.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "AAPL",
-    "time": "2026-08-20T14:55:46.007093+00:00",
-    "body": "RSI en <strong>70.2</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
