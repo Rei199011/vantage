@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T20:47:32.470335+00:00",
+  "generated_at": "2026-08-20T21:44:26.257431+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -18,7 +18,7 @@
       "rr_ratio": 1.8,
       "rsi": 34.2,
       "atr": 1.94,
-      "activity_ratio": 0.82,
+      "activity_ratio": 0.26,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -73,7 +73,7 @@
       "rr_ratio": 1.8,
       "rsi": 58.2,
       "atr": 2.56,
-      "activity_ratio": 0.72,
+      "activity_ratio": 0.41,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -128,7 +128,7 @@
       "rr_ratio": 1.8,
       "rsi": 42.3,
       "atr": 4.05,
-      "activity_ratio": 1.55,
+      "activity_ratio": 1.33,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -238,9 +238,9 @@
       "rr_ratio": 1.87,
       "rsi": 52.7,
       "atr": 2.65,
-      "activity_ratio": 1.21,
+      "activity_ratio": 3.44,
       "activity_label": "volumen",
-      "activity_spike": false,
+      "activity_spike": true,
       "volume_based": true,
       "trend_up": true,
       "trend_down": false,
@@ -248,7 +248,7 @@
       "support": 300.57,
       "resistance": 320.28,
       "direction": "buy",
-      "signal": "OBSERVAR",
+      "signal": "ENTRADA",
       "spark": [
         0.0,
         0.1069,
@@ -277,7 +277,7 @@
       ],
       "timeframe": "60m",
       "last_candle": "2026-08-20T15:30:00-04:00",
-      "reason": "Media de 20 sobre la de 50 (tendencia alcista).",
+      "reason": "Media de 20 sobre la de 50 (tendencia alcista); volumen 3.44x el promedio de 20 velas.",
       "promoted": false
     },
     {
@@ -293,7 +293,7 @@
       "rr_ratio": 1.8,
       "rsi": 48.5,
       "atr": 2.99,
-      "activity_ratio": 1.68,
+      "activity_ratio": 1.32,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -348,7 +348,7 @@
       "rr_ratio": 1.8,
       "rsi": 82.4,
       "atr": 3.59,
-      "activity_ratio": 0.97,
+      "activity_ratio": 0.86,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -393,6 +393,13 @@
   ],
   "errors": [],
   "events": [
+    {
+      "kind": "Señal",
+      "kind_class": "",
+      "symbol": "AAPL",
+      "time": "2026-08-20T21:44:21.116754+00:00",
+      "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.87. Entrada 311.34, stop 306.56."
+    },
     {
       "kind": "Precaución",
       "kind_class": "sentiment",
@@ -469,16 +476,9 @@
       "symbol": "MSTR",
       "time": "2026-08-20T16:51:36.046943+00:00",
       "body": "RSI en <strong>76.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-    },
-    {
-      "kind": "Precaución",
-      "kind_class": "sentiment",
-      "symbol": "RKLB",
-      "time": "2026-08-20T15:50:01.674186+00:00",
-      "body": "RSI en <strong>10.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 16.6, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>MSTR</strong>: el RSI está en 82.4, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: MSTR +7.78%, RKLB -3.8%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
+  "brief": "Hoy el sistema solo marca una señal de compra activa en <strong class='hi'>AAPL</strong> a 311,34, respaldada por un ratio de actividad de 3,44 tras caer un 1,75%. Por el contrario, la compra en <strong class='lo'>MSTR</strong> presenta una contradicción técnica evidente: sube un 7,78% pero llega con un RSI saturado de 82,4 contra la resistencia de 113,63. En el lado vendedor, la alerta en <strong class='lo'>RKLB</strong> también choca de frente con la lectura técnica, pues propone vender con una caída del 3,80% y un RSI ya hundido en 16,6. Los valores restantes —NVDA, PLTR, SNOW y MSFT— se mantienen en observación con sesgo vendedor pero sin activación operativa. Recordá que todos estos parámetros son niveles técnicos generados automáticamente sin validación contra histórico.",
   "radar": {
     "generated_at": "2026-08-20T06:02:56.944624+00:00",
     "universe_size": 134,
@@ -561,8 +561,8 @@
     ]
   },
   "journal": {
-    "total": 0,
-    "abiertas": 0,
+    "total": 1,
+    "abiertas": 1,
     "cerradas": 0,
     "minimo_fiable": 30,
     "suficientes": false,
@@ -667,12 +667,16 @@
       "pulse": "info",
       "rows": [
         [
-          "Estado",
-          "sin señales anotadas"
+          "Anotadas",
+          "1"
         ],
         [
-          "Objetivo",
-          "medir si las señales aciertan"
+          "Abiertas",
+          "1"
+        ],
+        [
+          "Cerradas",
+          "ninguna todavía"
         ]
       ],
       "pill": "Medición en curso",
