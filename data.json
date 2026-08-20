@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T11:43:31.598157+00:00",
+  "generated_at": "2026-08-20T13:12:21.537798+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -478,7 +478,7 @@
       "body": "RSI en <strong>73.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Hoy solo aparece una señal activa de venta en <strong class='hi'>SNOW</strong> en 325.33, con un ratio de actividad de 1.88 y variación nula. Las alertas de venta en <strong class='lo'>NVDA</strong> y <strong class='lo'>RKLB</strong> contradicen el estado técnico, ya que registran lecturas de RSI muy bajas de 23.0 y 18.4 al lado de sus soportes. En el sentido opuesto, la señal de compra en <strong class='lo'>AAPL</strong> choca con un RSI sobrecomprado de 77.8 a escasa distancia de su resistencia en 319.28. Conviene descartar estas tres propuestas y mantener al resto en observación. Recordá que todos estos niveles son marcas técnicas que no están validadas contra histórico.",
+  "brief": "<strong class='hi'>SNOW</strong> presenta un setup de venta: entrada en 325.33, take profit en 312.13 y stop loss en 332.66 (riesgo/beneficio 1:1.8), con volumen 1.88x lo habitual. Cautela en <strong class='lo'>NVDA</strong>: el RSI está en 23.0, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 18.4, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>AAPL</strong>: el RSI está en 77.8, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: MSTR +12.6%, RKLB -4.21%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
   "radar": {
     "generated_at": "2026-08-20T06:02:56.944624+00:00",
     "universe_size": 134,
