@@ -31,6 +31,7 @@ import universe
 import market
 import fundamentals
 import ai
+import journal
 from analyzer import analyze_frame, reason_text
 
 RADAR_FILE = "radar.json"           # el ranking completo, para el panel
@@ -224,7 +225,7 @@ def _slim(r: dict) -> dict:
     campos = ("symbol", "display_symbol", "name", "asset_class", "price", "change_pct",
               "signal", "direction", "entry", "take_profit", "stop_loss", "rr_ratio",
               "rsi", "activity_ratio", "activity_label", "volume_based", "score",
-              "reason", "ai")
+              "reason", "ai", "bloqueo")
     return {k: r[k] for k in campos if k in r}
 
 
@@ -233,20 +234,41 @@ def descartado(r: dict) -> bool:
     return (r.get("ai") or {}).get("veredicto") == "descartar"
 
 
-def accionables(cands: list) -> list:
+def revisados_ok(cands: list) -> list:
+    """Los que la revisión con IA no rechazó. Todavía sin pasar por el candado."""
+    return [r for r in cands if not descartado(r)]
+
+
+def accionables(cands: list, vivas: dict | None = None) -> list:
     """
     Los que llegan a Telegram como orden.
 
-    Sin IA son todos los candidatos. Con IA, los que no fueron descartados:
-    no tiene sentido avisarte de una compra que la propia revisión rechazó.
+    Dos filtros: la revisión con IA, y el candado. El candado marca en
+    `r["bloqueo"]` el motivo de los que aparta, para poder decirlo en el
+    resumen en vez de que desaparezcan sin explicación.
     """
-    return [r for r in cands if not descartado(r)]
+    if vivas is None:
+        vivas = journal.abiertas()
+
+    libres = []
+    for r in revisados_ok(cands):
+        permitido, motivo = journal.permiso(
+            r["symbol"], r["direction"], journal.RADAR, vivas)
+        if permitido:
+            libres.append(r)
+        else:
+            r["bloqueo"] = motivo
+    return libres
 
 
 def save(resultados: list, conjunto: dict | None = None) -> dict:
     cands = candidates(resultados)
-    # Solo ascienden a seguimiento horario los que sobrevivieron a la revisión.
-    ascendidos = [r["symbol"] for r in accionables(cands)[:PROMOTE_TOP]]
+    ordenes = accionables(cands)
+
+    # El ascenso a seguimiento horario NO pasa por el candado, a propósito: un
+    # símbolo con una señal viva es justo el que hay que seguir mirando cada
+    # hora. Lo que el candado corta son los avisos, no la vigilancia.
+    ascendidos = [r["symbol"] for r in revisados_ok(cands)[:PROMOTE_TOP]]
 
     radar = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -257,6 +279,8 @@ def save(resultados: list, conjunto: dict | None = None) -> dict:
         "reviewed": sum(1 for r in cands[:RADAR_TOP] if "ai" in r),
         "portfolio": conjunto,
         "top": [_slim(r) for r in cands[:RADAR_TOP]],
+        # Lo que de verdad sale como orden, ya filtrado por IA y por candado.
+        "ordenes": [_slim(r) for r in ordenes[:PROMOTE_TOP]],
     }
     with open(RADAR_FILE, "w", encoding="utf-8") as f:
         json.dump(radar, f, ensure_ascii=False, indent=2)
@@ -288,17 +312,30 @@ def format_digest(radar: dict) -> str:
         return (f"{cab}\n\nSin candidatos hoy: ninguno cumple las tres condiciones "
                 f"de entrada. Es un resultado válido, no un fallo.")
 
-    ordenes = [r for r in top if not descartado(r)][:PROMOTE_TOP]
+    # save() ya dejó resuelto qué sale como orden (IA + candado). Se recalcula
+    # solo si viene un radar viejo, de antes de que existiera esa clave.
+    ordenes = radar.get("ordenes")
+    if ordenes is None:
+        ordenes = accionables(top)[:PROMOTE_TOP]
+
     rechazados = [r for r in top if descartado(r)]
+    bloqueados = [r for r in top if r.get("bloqueo")]
 
     if not ordenes:
-        bloques = [cab, "", "<b>Ninguna operación accionable hoy.</b>",
-                   "Todos los candidatos fueron descartados en la revisión."]
+        motivo = ("Todos los candidatos fueron descartados en la revisión."
+                  if rechazados and not bloqueados else
+                  "Los candidatos de hoy ya tienen una señal viva o son contrarios a una.")
+        bloques = [cab, "", "<b>Ninguna operación nueva hoy.</b>", motivo]
     else:
         plural = "operación" if len(ordenes) == 1 else "operaciones"
         bloques = [cab, "", f"<b>{len(ordenes)} {plural}</b>", ""]
         for r in ordenes:
             bloques.append(_bloque_orden(r))
+
+    if bloqueados:
+        detalle = " · ".join(f"{_esc(r['display_symbol'])} ({_esc(r['bloqueo'])})"
+                             for r in bloqueados)
+        bloques.append(f"🔒 <i>Candado: {detalle}</i>")
 
     if rechazados:
         nombres = ", ".join(r["display_symbol"] for r in rechazados)

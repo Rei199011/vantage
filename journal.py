@@ -62,29 +62,112 @@ def _guardar(datos: dict):
         json.dump(datos, f, ensure_ascii=False, indent=2)
 
 
+# -------------------------------------------------------------------- candado
+
+# Los dos canales que emiten señales. El radar mira vela diaria y ve la
+# tendencia de fondo; el seguimiento mira vela horaria y ve el momento.
+RADAR = "radar"
+SEGUIMIENTO = "seguimiento"
+
+
+def _canal(s: dict) -> str:
+    """De qué canal vino una señal ya guardada."""
+    return RADAR if RADAR in (s.get("origen") or "") else SEGUIMIENTO
+
+
+def abiertas() -> dict:
+    """{símbolo: señal viva}. Es el estado que consulta el candado."""
+    return {s["symbol"]: s for s in _cargar()["signals"] if s["status"] == "abierta"}
+
+
+def permiso(symbol: str, direction: str, canal: str,
+            vivas: dict | None = None) -> tuple[bool, str]:
+    """
+    ¿Se puede emitir esta señal? Devuelve (permitido, motivo).
+
+    UNA SOLA SEÑAL VIVA POR SÍMBOLO. Sin esta regla el sistema vuelve a avisar
+    en cuanto reaparece el pico de actividad, y como las medias 20/50 siguen
+    apuntando al mismo lado después de un stop de 1,8 ATR, reentra siempre en
+    la misma dirección y siempre a peor precio. Medido sobre el historial de
+    agosto de 2026: 8 reentradas tras un stop, 8 a peor precio.
+
+    PRIORIDAD AL RADAR cuando los dos canales discrepan. En BP el radar dio
+    compra y el seguimiento vendió dos veces contra ella: las dos ventas al
+    stop, la compra del radar en beneficio. En SAN, compra del radar a las
+    06:04 y venta del seguimiento a las 09:53, al stop en 3,1 horas. El marco
+    corto pierde cuando pelea contra la tendencia que el largo ya identificó.
+    """
+    viva = (abiertas() if vivas is None else vivas).get(symbol)
+    if viva is None:
+        return True, ""
+
+    desde = viva.get("signal_date", "?")
+    lado = "compra" if viva["direction"] == "buy" else "venta"
+
+    if viva["direction"] == direction:
+        return False, f"reentrada: ya hay una {lado} viva desde {desde}"
+
+    if _canal(viva) == RADAR:
+        # Contraria a una señal del radar: no se abre, venga de donde venga.
+        return False, f"contraria a la {lado} del radar del {desde}, que tiene prioridad"
+
+    if canal == RADAR:
+        # El radar sí releva al seguimiento: es el único caso en que se cede.
+        # Aviso honesto: en el historial de agosto de 2026 no se dio ni una vez
+        # (el radar siempre llegó primero), así que esta rama va sin medir.
+        return True, f"el radar releva la {lado} del seguimiento del {desde}"
+
+    return False, f"contraria a la {lado} viva desde {desde}"
+
+
+def _relevar(viva: dict, precio: float | None = None):
+    """
+    Aparta una señal del seguimiento porque el radar emite la contraria.
+
+    Se marca 'relevada' y se deja `r_multiple` en None a propósito: no sabemos
+    cómo habría acabado, y apuntarla como ganada o perdida sería inventarse un
+    resultado. stats() solo cuenta las que tienen r_multiple, así que queda
+    fuera de las métricas en vez de ensuciarlas. `r_al_relevar` guarda cómo iba.
+    """
+    viva["status"] = "relevada"
+    viva["closed_at"] = date.today().isoformat()
+    if precio is not None:
+        riesgo = abs(float(viva["entry"]) - float(viva["stop_loss"]))
+        if riesgo > 0:
+            mov = (precio - viva["entry"]) if viva["direction"] == "buy" \
+                else (viva["entry"] - precio)
+            viva["close_price"] = round(float(precio), 4)
+            viva["r_al_relevar"] = round(mov / riesgo, 3)
+
+
 # ------------------------------------------------------------------ registrar
 
 
-def record(resultados: list, origen: str = "seguimiento") -> int:
+def record(resultados: list, origen: str = SEGUIMIENTO) -> int:
     """
     Anota las señales de entrada nuevas. Devuelve cuántas se añadieron.
 
-    Se llama en cada ronda. Si un símbolo ya tiene una señal abierta, no se
-    duplica: interesa medir la señal, no cuántas veces se repitió el aviso.
+    Aplica el mismo candado que decide los avisos, para que el registro y lo
+    que llega a Telegram no puedan desincronizarse: lo que no se avisa,
+    tampoco se anota.
     """
     datos = _cargar()
-    abiertas = {s["symbol"] for s in datos["signals"] if s["status"] == "abierta"}
+    vivas = {s["symbol"]: s for s in datos["signals"] if s["status"] == "abierta"}
     hoy = date.today().isoformat()
     nuevas = 0
 
     for r in resultados:
         if "error" in r or r.get("signal") != "ENTRADA" or not r.get("direction"):
             continue
-        if r["symbol"] in abiertas:
+
+        permitido, motivo = permiso(r["symbol"], r["direction"], origen, vivas)
+        if not permitido:
             continue
+        if motivo:                      # el radar releva una del seguimiento
+            _relevar(vivas[r["symbol"]], r.get("price"))
 
         v = r.get("ai") or {}
-        datos["signals"].append({
+        nueva = {
             "id": f"{r['symbol']}-{hoy}",
             "symbol": r["symbol"],
             "display_symbol": r.get("display_symbol", r["symbol"]),
@@ -115,8 +198,9 @@ def record(resultados: list, origen: str = "seguimiento") -> int:
             "close_price": None,
             "r_multiple": None,
             "dias_abierta": None,
-        })
-        abiertas.add(r["symbol"])
+        }
+        datos["signals"].append(nueva)
+        vivas[r["symbol"]] = nueva       # el candado ya la ve en esta misma ronda
         nuevas += 1
 
     if nuevas:

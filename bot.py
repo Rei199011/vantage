@@ -131,12 +131,21 @@ def format_message(r: dict, veredicto: dict | None = None) -> str:
     return "\n".join(lineas)
 
 
-async def send_alert(bot: Bot, r: dict, veredictos: dict):
+async def send_alert(bot: Bot, r: dict, veredictos: dict, vivas: dict | None = None):
     if "error" in r or r["signal"] not in ALERT_ON:
         return
 
     if RESPETAR_VEREDICTO and veredictos.get(r["symbol"]) == "descartar":
         print(f"  {r['display_symbol']}: entrada omitida, la revisión la descartó")
+        return
+
+    # El candado. _last_signal solo evita repetir el MISMO aviso seguido; no
+    # impide reentrar tras un stop ni abrir la contraria de una posición viva,
+    # que es de donde salían las pérdidas encadenadas.
+    permitido, motivo = journal.permiso(
+        r["symbol"], r["direction"], journal.SEGUIMIENTO, vivas)
+    if not permitido:
+        print(f"  {r['display_symbol']}: candado — {motivo}")
         return
 
     if _last_signal.get(r["symbol"]) == r["signal"]:
@@ -238,11 +247,20 @@ async def run_round(bot: Bot):
             print(f"Estado recuperado: {len(_last_signal)} señales de la ronda anterior")
 
     veredictos = _veredictos()
+
+    # Foto del candado al empezar la ronda. Se lee una sola vez: dentro de una
+    # ronda cada símbolo se analiza una vez, así que no puede quedarse obsoleta,
+    # y record() aplica después las mismas reglas sobre el mismo estado.
+    vivas = journal.abiertas()
+    if vivas:
+        print(f"Candado: {len(vivas)} señal(es) viva(s) — "
+              + ", ".join(sorted(market.pretty_symbol(s) for s in vivas)))
+
     results = []
     for symbol in market.active_symbols():
         r = analyze(symbol)
         results.append(r)
-        await send_alert(bot, r, veredictos)
+        await send_alert(bot, r, veredictos, vivas)
         await asyncio.sleep(0.4)   # no atropellar a Yahoo
 
     # El registro se escribe SIEMPRE, se avise o no. Lo que se mide es la
@@ -293,6 +311,17 @@ async def run_radar():
     resultados = scanner.scan()
     conjunto = scanner.review(scanner.candidates(resultados))
     radar = scanner.save(resultados, conjunto)
+
+    # Las órdenes del radar se anotan en el registro igual que las horarias.
+    # Antes no se anotaban en ninguna parte: solo entraban las que el
+    # seguimiento volvía a dar por su cuenta, así que el radar quedaba sin
+    # medir y el candado no podía saber que tenía una posición viva.
+    try:
+        nuevas = journal.record(radar.get("ordenes", []), origen=journal.RADAR)
+        if nuevas:
+            print(f"  {nuevas} orden(es) del radar anotadas en el registro")
+    except Exception as e:
+        print(f"⚠ No se pudo anotar el radar en el registro: {e}")
 
     print(f"{radar['scanned']} analizados, {radar['candidates']} candidatos")
     await bot.send_message(
