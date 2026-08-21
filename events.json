@@ -3,6 +3,34 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "MSTR",
+    "time": "2026-08-21T20:42:11.121252+00:00",
+    "body": "RSI en <strong>84.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T20:42:11.121252+00:00",
+    "body": "RSI en <strong>82.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "DE",
+    "time": "2026-08-21T20:42:11.121252+00:00",
+    "body": "RSI en <strong>77.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T20:42:11.121252+00:00",
+    "body": "RSI en <strong>16.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSTR",
     "time": "2026-08-21T19:38:13.785780+00:00",
     "body": "RSI en <strong>84.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
@@ -54,33 +82,5 @@
     "symbol": "DE",
     "time": "2026-08-21T18:56:48.260500+00:00",
     "body": "RSI en <strong>77.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "WMT",
-    "time": "2026-08-21T18:56:48.260500+00:00",
-    "body": "RSI en <strong>13.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-21T17:46:22.091590+00:00",
-    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 215.69, stop 218.81."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-21T17:46:22.091590+00:00",
-    "body": "RSI en <strong>86.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "COIN",
-    "time": "2026-08-21T17:46:22.091590+00:00",
-    "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
