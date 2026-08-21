@@ -2,6 +2,27 @@
   {
     "kind": "Precaución",
     "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-21T15:49:32.627069+00:00",
+    "body": "RSI en <strong>77.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T15:49:32.627069+00:00",
+    "body": "RSI en <strong>75.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T15:49:32.627069+00:00",
+    "body": "RSI en <strong>12.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
     "symbol": "NVDA",
     "time": "2026-08-21T14:54:13.499091+00:00",
     "body": "RSI en <strong>25.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -61,26 +82,5 @@
     "symbol": "MSTR",
     "time": "2026-08-21T13:59:05.043068+00:00",
     "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "MSTR",
-    "time": "2026-08-21T13:59:05.043068+00:00",
-    "body": "Volumen <strong>2.91x</strong> lo habitual, sin setup válido todavía."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "COIN",
-    "time": "2026-08-21T13:59:05.043068+00:00",
-    "body": "RSI en <strong>80.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "COIN",
-    "time": "2026-08-21T13:59:05.043068+00:00",
-    "body": "Volumen <strong>3.19x</strong> lo habitual, sin setup válido todavía."
   }
 ]
