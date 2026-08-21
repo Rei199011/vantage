@@ -2,6 +2,34 @@
   {
     "kind": "Precaución",
     "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-21T19:38:13.785780+00:00",
+    "body": "RSI en <strong>84.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T19:38:13.785780+00:00",
+    "body": "RSI en <strong>81.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "DE",
+    "time": "2026-08-21T19:38:13.785780+00:00",
+    "body": "RSI en <strong>80.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T19:38:13.785780+00:00",
+    "body": "RSI en <strong>13.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
     "symbol": "NVDA",
     "time": "2026-08-21T18:56:48.260500+00:00",
     "body": "RSI en <strong>27.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -54,33 +82,5 @@
     "symbol": "COIN",
     "time": "2026-08-21T17:46:22.091590+00:00",
     "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "DE",
-    "time": "2026-08-21T17:46:22.091590+00:00",
-    "body": "RSI en <strong>74.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "WMT",
-    "time": "2026-08-21T17:46:22.091590+00:00",
-    "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "PLTR",
-    "time": "2026-08-21T16:52:18.805125+00:00",
-    "body": "RSI en <strong>70.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "PLTR",
-    "time": "2026-08-21T16:52:18.805125+00:00",
-    "body": "Volumen <strong>4.72x</strong> lo habitual, sin setup válido todavía."
   }
 ]
