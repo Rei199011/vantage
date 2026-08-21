@@ -1,5 +1,61 @@
 [
   {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "NVDA",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 216.49, stop 219.56."
+  },
+  {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "AAPL",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:2.95. Entrada 307.26, stop 302.85."
+  },
+  {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "MSFT",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 481.73, stop 487.21."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Volumen",
+    "kind_class": "",
+    "symbol": "MSTR",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "Volumen <strong>2.91x</strong> lo habitual, sin setup válido todavía."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "RSI en <strong>80.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Volumen",
+    "kind_class": "",
+    "symbol": "COIN",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "Volumen <strong>3.19x</strong> lo habitual, sin setup válido todavía."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T13:59:05.043068+00:00",
+    "body": "RSI en <strong>10.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "MSTR",
@@ -26,61 +82,5 @@
     "symbol": "SAN",
     "time": "2026-08-21T09:53:33.513738+00:00",
     "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 12.43, stop 12.59."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-21T08:59:29.363360+00:00",
-    "body": "RSI en <strong>16.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-21T07:58:07.033655+00:00",
-    "body": "RSI en <strong>82.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "COIN",
-    "time": "2026-08-21T07:08:37.332825+00:00",
-    "body": "RSI en <strong>76.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "WMT",
-    "time": "2026-08-21T07:08:37.332825+00:00",
-    "body": "RSI en <strong>18.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "AAPL",
-    "time": "2026-08-20T21:44:21.116754+00:00",
-    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.87. Entrada 311.34, stop 306.56."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-20T20:47:27.084800+00:00",
-    "body": "RSI en <strong>16.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-20T20:47:27.084800+00:00",
-    "body": "RSI en <strong>82.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-20T19:46:36.712535+00:00",
-    "body": "RSI en <strong>15.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
