@@ -2,6 +2,13 @@
   {
     "kind": "Precaución",
     "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T11:43:10.897992+00:00",
+    "body": "RSI en <strong>76.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
     "symbol": "WMT",
     "time": "2026-08-21T10:48:21.971845+00:00",
     "body": "RSI en <strong>18.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -75,12 +82,5 @@
     "symbol": "AAPL",
     "time": "2026-08-20T19:46:36.712535+00:00",
     "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 312.52, stop 307.98."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-20T19:46:36.712535+00:00",
-    "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
