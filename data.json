@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T07:58:12.843541+00:00",
+  "generated_at": "2026-08-21T08:59:38.769189+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -395,27 +395,26 @@
       "display_symbol": "SAN",
       "name": "Banco Santander",
       "asset_class": "Acción",
-      "price": 12.45,
-      "change_pct": 1.53,
-      "entry": 12.45,
-      "take_profit": 12.13,
-      "stop_loss": 12.62,
-      "rr_ratio": 1.8,
-      "rsi": 58.0,
+      "price": 12.53,
+      "change_pct": 2.2,
+      "entry": 12.53,
+      "take_profit": 12.15,
+      "stop_loss": 12.7,
+      "rr_ratio": 2.15,
+      "rsi": 59.5,
       "atr": 0.1,
-      "activity_ratio": 1.12,
+      "activity_ratio": 0.87,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
       "trend_up": false,
       "trend_down": true,
-      "trend_strength": 3.13,
+      "trend_strength": 2.97,
       "support": 12.15,
       "resistance": 13.12,
       "direction": "sell",
       "signal": "OBSERVAR",
       "spark": [
-        0.9774,
         1.0,
         0.7849,
         0.5245,
@@ -438,10 +437,11 @@
         0.1585,
         0.2264,
         0.1547,
-        0.5094
+        0.5962,
+        0.6642
       ],
       "timeframe": "60m",
-      "last_candle": "2026-08-21T09:00:00+02:00",
+      "last_candle": "2026-08-21T10:00:00+02:00",
       "reason": "Media de 20 bajo la de 50 (tendencia bajista).",
       "promoted": true
     },
@@ -616,6 +616,13 @@
     {
       "kind": "Precaución",
       "kind_class": "sentiment",
+      "symbol": "RKLB",
+      "time": "2026-08-21T08:59:29.363360+00:00",
+      "body": "RSI en <strong>16.6</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+    },
+    {
+      "kind": "Precaución",
+      "kind_class": "sentiment",
       "symbol": "MSTR",
       "time": "2026-08-21T07:58:07.033655+00:00",
       "body": "RSI en <strong>82.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -689,16 +696,9 @@
       "symbol": "NVDA",
       "time": "2026-08-20T17:46:40.681402+00:00",
       "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 216.53, stop 219.98."
-    },
-    {
-      "kind": "Precaución",
-      "kind_class": "sentiment",
-      "symbol": "RKLB",
-      "time": "2026-08-20T17:46:40.681402+00:00",
-      "body": "RSI en <strong>14.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 16.6, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>MSTR</strong>: el RSI está en 82.4, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>COIN</strong>: el RSI está en 76.8, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>WMT</strong>: el RSI está en 18.0, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: WMT -9.22%, MSTR +7.78%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. Las compras marcadas en <strong class='lo'>MSTR</strong> y <strong class='lo'>COIN</strong> muestran sobrecompra con RSI superior a 76 y precios muy cerca de sus resistencias. Por el lado vendedor, las señales en <strong class='lo'>WMT</strong> y <strong class='lo'>RKLB</strong> coinciden con RSI inferior a 19 y cotizaciones inmediatas a sus niveles de soporte. El resto del listado permanece en observación sin condiciones operativas claras. Recordá que todos estos niveles técnicos no están validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-21T06:04:36.882705+00:00",
     "universe_size": 134,
