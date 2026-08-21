@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T09:53:43.358016+00:00",
+  "generated_at": "2026-08-21T10:48:27.322846+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -395,54 +395,54 @@
       "display_symbol": "SAN",
       "name": "Banco Santander",
       "asset_class": "Acción",
-      "price": 12.43,
-      "change_pct": 1.39,
-      "entry": 12.43,
-      "take_profit": 12.13,
-      "stop_loss": 12.59,
-      "rr_ratio": 1.8,
-      "rsi": 58.9,
-      "atr": 0.09,
-      "activity_ratio": 2.3,
+      "price": 12.46,
+      "change_pct": 1.68,
+      "entry": 12.46,
+      "take_profit": 12.15,
+      "stop_loss": 12.61,
+      "rr_ratio": 2.09,
+      "rsi": 74.5,
+      "atr": 0.08,
+      "activity_ratio": 0.31,
       "activity_label": "volumen",
-      "activity_spike": true,
+      "activity_spike": false,
       "volume_based": true,
       "trend_up": false,
       "trend_down": true,
-      "trend_strength": 2.96,
+      "trend_strength": 3.04,
       "support": 12.15,
       "resistance": 13.12,
       "direction": "sell",
-      "signal": "ENTRADA",
+      "signal": "OBSERVAR",
       "spark": [
-        1.0,
-        0.6683,
-        0.6442,
-        0.25,
-        0.2885,
-        0.4279,
-        0.4952,
-        0.3702,
-        0.5,
-        0.3029,
+        0.8688,
+        0.8375,
+        0.325,
+        0.375,
+        0.5563,
+        0.6437,
+        0.4812,
+        0.65,
+        0.3938,
         0.0,
-        0.1058,
-        0.25,
-        0.1875,
-        0.1971,
-        0.1971,
-        0.1731,
-        0.2596,
-        0.2019,
-        0.2885,
-        0.1971,
-        0.7596,
-        0.7692,
-        0.6058
+        0.1375,
+        0.325,
+        0.2437,
+        0.2563,
+        0.2563,
+        0.225,
+        0.3375,
+        0.2625,
+        0.375,
+        0.2563,
+        0.9875,
+        1.0,
+        0.8375,
+        0.9
       ],
       "timeframe": "60m",
-      "last_candle": "2026-08-21T11:00:00+02:00",
-      "reason": "Media de 20 bajo la de 50 (tendencia bajista); volumen 2.3x el promedio de 20 velas.",
+      "last_candle": "2026-08-21T12:00:00+02:00",
+      "reason": "Media de 20 bajo la de 50 (tendencia bajista); rsi 74.5 en zona de sobrecompra.",
       "promoted": true
     },
     {
@@ -614,6 +614,13 @@
   "errors": [],
   "events": [
     {
+      "kind": "Precaución",
+      "kind_class": "sentiment",
+      "symbol": "WMT",
+      "time": "2026-08-21T10:48:21.971845+00:00",
+      "body": "RSI en <strong>18.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+    },
+    {
       "kind": "Señal",
       "kind_class": "",
       "symbol": "SAN",
@@ -689,16 +696,9 @@
       "symbol": "MSTR",
       "time": "2026-08-20T19:46:36.712535+00:00",
       "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-    },
-    {
-      "kind": "Precaución",
-      "kind_class": "sentiment",
-      "symbol": "RKLB",
-      "time": "2026-08-20T18:59:54.361942+00:00",
-      "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "La única señal de entrada del día es de venta en <strong class='hi'>SAN</strong> a 12,43, donde el filtro técnico choca directamente con una subida del 1,39% y un ratio de actividad elevado de 2,3. En las posiciones largas, <strong class='lo'>MSTR</strong> y <strong class='lo'>COIN</strong> muestran precaución tras avanzar más de un 7% y alcanzar un RSI de 82,4 y 76,8 junto a sus resistencias. En las posiciones cortas, <strong class='lo'>WMT</strong> y <strong class='lo'>RKLB</strong> acumulan caídas pronunciadas pero registran niveles de RSI de 18,0 y 16,6 inmediatamente sobre sus soportes. El resto de la lista permanece en observación con predominio de ventas. Recordá que todos estos niveles técnicos carecen de validación contra histórico.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento, solo alertas de observación y cautela. Las propuestas de compra en <strong class='lo'>MSTR</strong> y <strong class='lo'>COIN</strong> muestran un RSI superior a 76 y operan pegadas a sus resistencias. En el lado vendedor, <strong class='lo'>RKLB</strong> y <strong class='lo'>WMT</strong> registran lecturas de RSI inferiores a 19 justo sobre sus soportes. Conviene descartar estas señales porque los extremos técnicos contradicen la dirección sugerida por el filtro. Recordá que todos estos niveles corresponden a un sistema automático sin validar contra histórico.",
   "radar": {
     "generated_at": "2026-08-21T06:04:36.882705+00:00",
     "universe_size": 134,
@@ -906,8 +906,8 @@
     ]
   },
   "journal": {
-    "total": 1,
-    "abiertas": 1,
+    "total": 0,
+    "abiertas": 0,
     "cerradas": 0,
     "minimo_fiable": 30,
     "suficientes": false,
@@ -1012,16 +1012,12 @@
       "pulse": "info",
       "rows": [
         [
-          "Anotadas",
-          "1"
+          "Estado",
+          "sin señales anotadas"
         ],
         [
-          "Abiertas",
-          "1"
-        ],
-        [
-          "Cerradas",
-          "ninguna todavía"
+          "Objetivo",
+          "medir si las señales aciertan"
         ]
       ],
       "pill": "Medición en curso",

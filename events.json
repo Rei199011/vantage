@@ -1,5 +1,12 @@
 [
   {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T10:48:21.971845+00:00",
+    "body": "RSI en <strong>18.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Señal",
     "kind_class": "",
     "symbol": "SAN",
@@ -75,12 +82,5 @@
     "symbol": "MSTR",
     "time": "2026-08-20T19:46:36.712535+00:00",
     "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-20T18:59:54.361942+00:00",
-    "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
