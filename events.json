@@ -1,5 +1,12 @@
 [
   {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "SAN",
+    "time": "2026-08-21T09:53:33.513738+00:00",
+    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 12.43, stop 12.59."
+  },
+  {
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "RKLB",
@@ -75,12 +82,5 @@
     "symbol": "RKLB",
     "time": "2026-08-20T18:59:54.361942+00:00",
     "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-20T17:46:40.681402+00:00",
-    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 216.53, stop 219.98."
   }
 ]
