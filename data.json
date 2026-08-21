@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T07:08:42.574588+00:00",
+  "generated_at": "2026-08-21T07:58:12.843541+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -238,7 +238,7 @@
       "rr_ratio": 1.87,
       "rsi": 52.7,
       "atr": 2.65,
-      "activity_ratio": 1.21,
+      "activity_ratio": 1.07,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
@@ -395,31 +395,30 @@
       "display_symbol": "SAN",
       "name": "Banco Santander",
       "asset_class": "Acción",
-      "price": 12.26,
-      "change_pct": 0.31,
-      "entry": 12.26,
-      "take_profit": 11.97,
-      "stop_loss": 12.42,
+      "price": 12.45,
+      "change_pct": 1.53,
+      "entry": 12.45,
+      "take_profit": 12.13,
+      "stop_loss": 12.62,
       "rr_ratio": 1.8,
-      "rsi": 39.5,
-      "atr": 0.09,
-      "activity_ratio": 0.86,
+      "rsi": 58.0,
+      "atr": 0.1,
+      "activity_ratio": 1.12,
       "activity_label": "volumen",
       "activity_spike": false,
       "volume_based": true,
       "trend_up": false,
       "trend_down": true,
-      "trend_strength": 3.55,
+      "trend_strength": 3.13,
       "support": 12.15,
       "resistance": 13.12,
       "direction": "sell",
       "signal": "OBSERVAR",
       "spark": [
-        0.9057,
         0.9774,
         1.0,
         0.7849,
-        0.5208,
+        0.5245,
         0.5057,
         0.1962,
         0.2264,
@@ -438,10 +437,11 @@
         0.2038,
         0.1585,
         0.2264,
-        0.1547
+        0.1547,
+        0.5094
       ],
       "timeframe": "60m",
-      "last_candle": "2026-08-20T17:00:00+02:00",
+      "last_candle": "2026-08-21T09:00:00+02:00",
       "reason": "Media de 20 bajo la de 50 (tendencia bajista).",
       "promoted": true
     },
@@ -616,6 +616,13 @@
     {
       "kind": "Precaución",
       "kind_class": "sentiment",
+      "symbol": "MSTR",
+      "time": "2026-08-21T07:58:07.033655+00:00",
+      "body": "RSI en <strong>82.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+    },
+    {
+      "kind": "Precaución",
+      "kind_class": "sentiment",
       "symbol": "COIN",
       "time": "2026-08-21T07:08:37.332825+00:00",
       "body": "RSI en <strong>76.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -689,16 +696,9 @@
       "symbol": "RKLB",
       "time": "2026-08-20T17:46:40.681402+00:00",
       "body": "RSI en <strong>14.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-    },
-    {
-      "kind": "Precaución",
-      "kind_class": "sentiment",
-      "symbol": "MSTR",
-      "time": "2026-08-20T17:46:40.681402+00:00",
-      "body": "RSI en <strong>78.2</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada directa en el seguimiento. Los valores en alerta de precaución reflejan extremos: <strong class='lo'>MSTR</strong> y <strong class='lo'>COIN</strong> marcan compras con RSI sobrecomprado pegados a resistencia, mientras <strong class='lo'>WMT</strong> y <strong class='lo'>RKLB</strong> proponen ventas con RSI en sobreventa cerca de soportes. En el resto del panel, señales como la venta en DE chocan contra su suba de 6.93%, lo que justifica descartarla. El filtro técnico muestra contradicciones evidentes entre el impulso del precio y los objetivos planteados. Recordá que estos niveles no están validados contra histórico y el sistema que los genera no tiene fiabilidad comprobada.",
+  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>RKLB</strong>: el RSI está en 16.6, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>MSTR</strong>: el RSI está en 82.4, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>COIN</strong>: el RSI está en 76.8, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>WMT</strong>: el RSI está en 18.0, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: WMT -9.22%, MSTR +7.78%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
   "radar": {
     "generated_at": "2026-08-21T06:04:36.882705+00:00",
     "universe_size": 134,
