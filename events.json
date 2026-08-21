@@ -1,5 +1,40 @@
 [
   {
+    "kind": "Señal",
+    "kind_class": "",
+    "symbol": "NVDA",
+    "time": "2026-08-21T17:46:22.091590+00:00",
+    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.8. Entrada 215.69, stop 218.81."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-21T17:46:22.091590+00:00",
+    "body": "RSI en <strong>86.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "COIN",
+    "time": "2026-08-21T17:46:22.091590+00:00",
+    "body": "RSI en <strong>82.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "DE",
+    "time": "2026-08-21T17:46:22.091590+00:00",
+    "body": "RSI en <strong>74.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "WMT",
+    "time": "2026-08-21T17:46:22.091590+00:00",
+    "body": "RSI en <strong>11.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "PLTR",
@@ -47,40 +82,5 @@
     "symbol": "MSTR",
     "time": "2026-08-21T15:49:32.627069+00:00",
     "body": "RSI en <strong>77.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "COIN",
-    "time": "2026-08-21T15:49:32.627069+00:00",
-    "body": "RSI en <strong>75.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "WMT",
-    "time": "2026-08-21T15:49:32.627069+00:00",
-    "body": "RSI en <strong>12.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "NVDA",
-    "time": "2026-08-21T14:54:13.499091+00:00",
-    "body": "RSI en <strong>25.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "RKLB",
-    "time": "2026-08-21T14:54:13.499091+00:00",
-    "body": "RSI en <strong>24.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-21T14:54:13.499091+00:00",
-    "body": "RSI en <strong>80.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
