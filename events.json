@@ -2,6 +2,13 @@
   {
     "kind": "Precaución",
     "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-21T13:11:43.598126+00:00",
+    "body": "RSI en <strong>82.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
     "symbol": "COIN",
     "time": "2026-08-21T11:43:10.897992+00:00",
     "body": "RSI en <strong>76.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
@@ -75,12 +82,5 @@
     "symbol": "RKLB",
     "time": "2026-08-20T19:46:36.712535+00:00",
     "body": "RSI en <strong>15.3</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "AAPL",
-    "time": "2026-08-20T19:46:36.712535+00:00",
-    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 312.52, stop 307.98."
   }
 ]
