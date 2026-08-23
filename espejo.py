@@ -1,4 +1,211 @@
-<!doctype html>
+"""
+Vantage — Espejo de la EA
+-------------------------
+Genera `dashboard.html` como reflejo de lo que hace el robot de order blocks
+en MetaTrader 5. No calcula señales ni decide nada: lee el terminal y lo pinta.
+
+    python espejo.py            # escribe dashboard.html
+    python espejo.py --abrir    # y lo abre en el navegador
+
+SOLO LEE. No envía ninguna orden ni toca ninguna posición. Todas las funciones
+que se usan de la API de MT5 son de consulta.
+
+Filtra por NUMERO MAGICO, así que en una cuenta compartida con otros robots
+—como la demo donde también corre Ariel— solo enseña lo nuestro.
+"""
+
+import argparse
+import datetime as dt
+import io
+import json
+import os
+import sys
+
+try:
+    import MetaTrader5 as mt5
+except ImportError:
+    print("Falta el paquete MetaTrader5:  pip install MetaTrader5")
+    sys.exit(1)
+
+# El mágico del EA. Si se cambia en el robot, hay que cambiarlo aquí.
+MAGICO = 20260822
+
+# Lo que el robot arriesga por operación, para poder expresar los resultados
+# en R. Es un parámetro suyo, no algo que se pueda deducir del historial de
+# una operación ya cerrada.
+RIESGO_POR_OPERACION = 500.0
+
+DIAS_HISTORIAL = 180
+SALIDA = "dashboard.html"
+
+TIPOS_ORDEN = {
+    mt5.ORDER_TYPE_BUY_LIMIT: "compra limitada",
+    mt5.ORDER_TYPE_SELL_LIMIT: "venta limitada",
+    mt5.ORDER_TYPE_BUY_STOP: "compra parada",
+    mt5.ORDER_TYPE_SELL_STOP: "venta parada",
+}
+
+
+# ---------------------------------------------------------------- lectura
+
+
+def leer_terminal():
+    """Todo lo que hay que saber del terminal, en un diccionario."""
+    if not mt5.initialize():
+        return {"error": f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"}
+
+    try:
+        ti = mt5.terminal_info()
+        ai = mt5.account_info()
+        return {
+            "generado": dt.datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "conectado": bool(ti and ti.connected),
+            "magico": MAGICO,
+            "riesgo": RIESGO_POR_OPERACION,
+            "cuenta": {
+                "login": ai.login if ai else None,
+                "servidor": ai.server if ai else "",
+                "divisa": ai.currency if ai else "",
+                "balance": round(ai.balance, 2) if ai else 0.0,
+                "equidad": round(ai.equity, 2) if ai else 0.0,
+            },
+            "abiertas": _abiertas(),
+            "pendientes": _pendientes(),
+            "cerradas": _cerradas(),
+        }
+    finally:
+        mt5.shutdown()
+
+
+def _dig(simbolo):
+    """
+    Decimales del símbolo.
+
+    Sin esto, 1,16396 se imprime como 1.1639599999999999: ruido de coma
+    flotante que ensucia la tabla entera.
+    """
+    s = mt5.symbol_info(simbolo)
+    return s.digits if s else 5
+
+
+def _abiertas():
+    filas = []
+    for p in (mt5.positions_get() or []):
+        if p.magic != MAGICO:
+            continue
+        venta = p.type == mt5.POSITION_TYPE_SELL
+        riesgo = _riesgo_de(venta, p.symbol, p.volume, p.price_open, p.sl)
+        n = _dig(p.symbol)
+        abierta = dt.datetime.fromtimestamp(p.time)
+        filas.append({
+            "simbolo": p.symbol,
+            "lado": "VENTA" if venta else "COMPRA",
+            "lotes": p.volume,
+            "entrada": round(p.price_open, n),
+            "stop": round(p.sl, n),
+            "objetivo": round(p.tp, n),
+            "flotante": round(p.profit, 2),
+            "abierta_desde": abierta.strftime("%d/%m %H:%M"),
+            "abierta_dia": abierta.strftime("%Y-%m-%d"),
+            # Un stop ya movido a la entrada no arriesga nada. Se marca aparte
+            # porque es la señal de que el parcial ya se cobró.
+            "en_breakeven": riesgo is not None and riesgo <= 0.01,
+            "riesgo": round(riesgo, 2) if riesgo else 0.0,
+        })
+    return sorted(filas, key=lambda x: x["simbolo"])
+
+
+def _pendientes():
+    filas = []
+    for o in (mt5.orders_get() or []):
+        if o.magic != MAGICO:
+            continue
+        n = _dig(o.symbol)
+        puesta = dt.datetime.fromtimestamp(o.time_setup)
+        filas.append({
+            "simbolo": o.symbol,
+            "tipo": TIPOS_ORDEN.get(o.type, str(o.type)),
+            "lotes": o.volume_current,
+            "nivel": round(o.price_open, n),
+            "stop": round(o.sl, n),
+            "objetivo": round(o.tp, n),
+            "puesta": puesta.strftime("%d/%m %H:%M"),
+            "puesta_dia": puesta.strftime("%Y-%m-%d"),
+        })
+    return sorted(filas, key=lambda x: x["simbolo"])
+
+
+def _cerradas():
+    """
+    Reconstruye las operaciones a partir de las transacciones.
+
+    Una operación con parcial genera DOS transacciones de salida, así que
+    contarlas sin agrupar infla la cuenta: es el error que hace que 16
+    operaciones aparezcan como 27 en los informes del probador.
+    """
+    desde = dt.datetime.now() - dt.timedelta(days=DIAS_HISTORIAL)
+    deals = mt5.history_deals_get(desde, dt.datetime.now() + dt.timedelta(days=1)) or []
+
+    por_posicion = {}
+    for d in deals:
+        if d.magic != MAGICO:
+            continue
+        p = por_posicion.setdefault(d.position_id, {
+            "simbolo": d.symbol, "lado": "", "beneficio": 0.0,
+            "abierta": None, "cerrada": None, "entrada": 0.0, "salidas": 0,
+        })
+        if d.entry == mt5.DEAL_ENTRY_IN:
+            p["lado"] = "VENTA" if d.type == mt5.DEAL_TYPE_SELL else "COMPRA"
+            p["abierta"] = d.time
+            p["entrada"] = d.price
+        else:
+            p["beneficio"] += d.profit + d.swap + d.commission
+            p["cerrada"] = d.time
+            p["salidas"] += 1
+
+    filas = []
+    for p in por_posicion.values():
+        if p["abierta"] is None or p["cerrada"] is None:
+            continue          # todavía viva: sale en las abiertas
+        a = dt.datetime.fromtimestamp(p["abierta"])
+        c = dt.datetime.fromtimestamp(p["cerrada"])
+        filas.append({
+            "simbolo": p["simbolo"],
+            "lado": p["lado"],
+            "beneficio": round(p["beneficio"], 2),
+            "r": round(p["beneficio"] / RIESGO_POR_OPERACION, 2),
+            "entrada": round(p["entrada"], _dig(p["simbolo"])),
+            "abierta": a.strftime("%d/%m %H:%M"),
+            "cerrada": c.strftime("%d/%m %H:%M"),
+            # Día en formato ordenable, que es lo que usan los filtros. El
+            # formato bonito no vale: "31/12" ordena antes que "01/01".
+            "abierta_dia": a.strftime("%Y-%m-%d"),
+            "cerrada_dia": c.strftime("%Y-%m-%d"),
+            "horas": round((p["cerrada"] - p["abierta"]) / 3600.0, 1),
+            "parcial": p["salidas"] > 1,
+        })
+    return sorted(filas, key=lambda x: x["cerrada_dia"], reverse=True)
+
+
+def _riesgo_de(venta, simbolo, lotes, entrada, stop):
+    """Lo que se pierde si salta el stop. Se lo pregunta al terminal."""
+    if not stop or stop <= 0.0:
+        return None
+    if (venta and stop <= entrada) or (not venta and stop >= entrada):
+        return 0.0                       # el stop ya está a favor
+    tipo = mt5.ORDER_TYPE_SELL if venta else mt5.ORDER_TYPE_BUY
+    p = mt5.order_calc_profit(tipo, simbolo, lotes, entrada, stop)
+    return abs(p) if p is not None else None
+
+
+# ---------------------------------------------------------------- pintado
+
+
+def render(d):
+    return PLANTILLA.replace("__DATOS__", json.dumps(d, ensure_ascii=False))
+
+
+PLANTILLA = r"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -181,7 +388,7 @@
 </div>
 
 <script>
-const D = {"generado": "23/08/2026 23:56", "conectado": true, "magico": 20260822, "riesgo": 500.0, "cuenta": {"login": 5053385957, "servidor": "MetaQuotes-Demo", "divisa": "EUR", "balance": 15352.48, "equidad": 15125.51}, "abiertas": [], "pendientes": [], "cerradas": []};
+const D = __DATOS__;
 const DIV = D.cuenta.divisa || "";
 
 const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -355,3 +562,43 @@ document.getElementById("pie").textContent =
 </script>
 </body>
 </html>
+"""
+
+
+# ---------------------------------------------------------------- principal
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--salida", default=SALIDA)
+    ap.add_argument("--abrir", action="store_true")
+    args = ap.parse_args()
+
+    d = leer_terminal()
+    if "error" in d:
+        print(" ", d["error"])
+        print("  ¿Está MetaTrader 5 abierto?")
+        return 1
+
+    io.open(args.salida, "w", encoding="utf-8").write(render(d))
+
+    print()
+    print(f"  {args.salida} escrito.")
+    print(f"  abiertas {len(d['abiertas'])}   pendientes {len(d['pendientes'])}"
+          f"   cerradas {len(d['cerradas'])}")
+    if d["cerradas"]:
+        r = [x["r"] for x in d["cerradas"]]
+        gana = sum(1 for x in r if x > 0)
+        print(f"  {len(r)} operaciones, {100.0 * gana / len(r):.1f}% de acierto, "
+              f"{sum(r):+.2f} R")
+    else:
+        print("  el robot todavía no ha cerrado ninguna operación")
+    print()
+
+    if args.abrir:
+        os.startfile(os.path.abspath(args.salida))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
