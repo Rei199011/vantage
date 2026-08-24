@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T10:54:26.587602+00:00",
+  "generated_at": "2026-08-24T11:44:47.200911+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -643,7 +643,7 @@
       "body": "RSI en <strong>81.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Hoy no hay ninguna señal de entrada activa en el panel de seguimiento. Las alertas de compra en <strong class='lo'>MSTR</strong>, <strong class='lo'>COIN</strong>, <strong class='lo'>MARA</strong> y <strong class='lo'>DE</strong> exigen cautela al presentar lecturas de RSI por encima de 73 junto a sus resistencias. En observación surgen contradicciones claras: el sistema plantea venta en SNOW mientras sube un 3,59% con volumen elevado, y marca venta en NVDA y RKLB pegadas a soporte con RSI cercano a 32. Toca descartar ejecuciones automáticas ante señales que chocan contra la dirección inmediata del precio. Recordá que estos parámetros son referencias técnicas no validadas contra histórico.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el seguimiento. Las compras marcadas con cautela en <strong class='lo'>MSTR</strong>, <strong class='lo'>COIN</strong>, <strong class='lo'>MARA</strong> y <strong class='lo'>DE</strong> llegan con lecturas de RSI superiores a 70 y varias con bajo volumen, por lo que conviene descartarlas. En el grupo de observación, la venta propuesta en SNOW contradice directamente su subida del 3,59% con volumen elevado. Valores como NVDA y AAPL operan cerca de soporte con RSI próximo a 30, pero sin confirmación alguna. Recordá que todas estas referencias son niveles técnicos automáticos no validados contra histórico.",
   "radar": {
     "generated_at": "2026-08-24T06:24:54.155509+00:00",
     "universe_size": 134,
