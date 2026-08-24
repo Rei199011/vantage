@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T09:05:39.879908+00:00",
+  "generated_at": "2026-08-24T10:05:21.611986+00:00",
   "timezone_label": "UTC",
   "granularity": "60m",
   "execution": false,
@@ -643,7 +643,7 @@
       "body": "RSI en <strong>81.9</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
     }
   ],
-  "brief": "Ningún instrumento del watchlist cumple hoy las tres condiciones de entrada (tendencia definida, volumen inusual y riesgo/beneficio mínimo). Sin señales es un resultado válido, no un fallo del sistema. Cautela en <strong class='lo'>MSTR</strong>: el RSI está en 84.9, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>COIN</strong>: el RSI está en 82.5, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>MARA</strong>: el RSI está en 73.0, en extremo contrario a la tendencia de las medias. Cautela en <strong class='lo'>DE</strong>: el RSI está en 77.1, en extremo contrario a la tendencia de las medias. Mayor movimiento en las últimas 24 horas: COIN +8.18%, MSTR +6.16%. Lectura sobre velas de 60m. Los niveles son cálculo técnico, no una previsión, y el sistema no está validado contra histórico. Vantage no opera: las órdenes las pasás vos.",
+  "brief": "Hoy no hay ninguna señal de entrada activa en el radar; todos los activos permanecen en observación o bajo estado de precaución. Las propuestas de compra en <strong class='lo'>MSTR</strong>, <strong class='lo'>COIN</strong>, <strong class='lo'>MARA</strong> y <strong class='lo'>DE</strong> presentan lecturas de RSI en sobrecompra superiores a 73 y techos inmediatos, por lo que corresponde descartar su ejecución. En el grupo de observación surgen contradicciones claras, como SNOW marcando venta tras registrar una subida del 3,59% con actividad elevada. Al mismo tiempo, NVDA y AAPL se sitúan en torno a 30 de RSI con bajo volumen relativo, sin confirmar giros en sus respectivas direcciones. Recordá que todos estos niveles son lecturas técnicas automáticas y no están validados contra datos históricos.",
   "radar": {
     "generated_at": "2026-08-24T06:24:54.155509+00:00",
     "universe_size": 134,
