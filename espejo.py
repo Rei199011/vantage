@@ -4,8 +4,9 @@ Vantage — Espejo de la EA
 Genera `dashboard.html` como reflejo de lo que hace el robot de order blocks
 en MetaTrader 5. No calcula señales ni decide nada: lee el terminal y lo pinta.
 
-    python espejo.py            # escribe dashboard.html
-    python espejo.py --abrir    # y lo abre en el navegador
+    python espejo.py              # escribe dashboard.html una vez
+    python espejo.py --abrir      # y lo abre en el navegador
+    python espejo.py --cada 15    # lo rehace cada 15 minutos, sin parar
 
 SOLO LEE. No envía ninguna orden ni toca ninguna posición. Todas las funciones
 que se usan de la API de MT5 son de consulta.
@@ -19,7 +20,10 @@ import datetime as dt
 import io
 import json
 import os
+import re
+import subprocess
 import sys
+import time
 
 try:
     import MetaTrader5 as mt5
@@ -144,7 +148,15 @@ def _cerradas():
     operaciones aparezcan como 27 en los informes del probador.
     """
     desde = dt.datetime.now() - dt.timedelta(days=DIAS_HISTORIAL)
-    deals = mt5.history_deals_get(desde, dt.datetime.now() + dt.timedelta(days=1)) or []
+    hasta = dt.datetime.now() + dt.timedelta(days=1)
+    deals = mt5.history_deals_get(desde, hasta) or []
+
+    # El stop y el objetivo no viven en la transacción: viven en la ORDEN que
+    # abrió la posición. Sin ellos no se puede dibujar la geometría.
+    niveles = {}
+    for o in (mt5.history_orders_get(desde, hasta) or []):
+        if o.magic == MAGICO and o.position_id and (o.sl or o.tp):
+            niveles.setdefault(o.position_id, (o.sl, o.tp))
 
     por_posicion = {}
     for d in deals:
@@ -153,6 +165,7 @@ def _cerradas():
         p = por_posicion.setdefault(d.position_id, {
             "simbolo": d.symbol, "lado": "", "beneficio": 0.0,
             "abierta": None, "cerrada": None, "entrada": 0.0, "salidas": 0,
+            "puntos": [],
         })
         if d.entry == mt5.DEAL_ENTRY_IN:
             p["lado"] = "VENTA" if d.type == mt5.DEAL_TYPE_SELL else "COMPRA"
@@ -162,14 +175,21 @@ def _cerradas():
             p["beneficio"] += d.profit + d.swap + d.commission
             p["cerrada"] = d.time
             p["salidas"] += 1
+            p["puntos"].append((d.time, d.price))
 
     filas = []
-    for p in por_posicion.values():
+    for pid, p in por_posicion.items():
         if p["abierta"] is None or p["cerrada"] is None:
             continue          # todavía viva: sale en las abiertas
         a = dt.datetime.fromtimestamp(p["abierta"])
         c = dt.datetime.fromtimestamp(p["cerrada"])
+        sl, tp = niveles.get(pid, (0.0, 0.0))
+        n = _dig(p["simbolo"])
         filas.append({
+            "grafico": _svg(p["simbolo"], p["entrada"], sl, tp,
+                            p["abierta"], p["puntos"], n),
+            "stop": round(sl, n),
+            "objetivo": round(tp, n),
             "simbolo": p["simbolo"],
             "lado": p["lado"],
             "beneficio": round(p["beneficio"], 2),
@@ -185,6 +205,90 @@ def _cerradas():
             "parcial": p["salidas"] > 1,
         })
     return sorted(filas, key=lambda x: x["cerrada_dia"], reverse=True)
+
+
+# --- el gráfico de cada operación --------------------------------------
+#
+# Se dibuja aquí, en el servidor, como SVG plano. Ni librerías ni peticiones:
+# la página sigue siendo un fichero suelto que se abre sin nada más.
+
+ANCHO, ALTO = 560, 250
+IZQ, DER, ARR, ABA = 8, 62, 12, 22
+VELAS_ANTES, VELAS_DESPUES = 30, 20
+
+
+def _svg(simbolo, entrada, stop, objetivo, t_in, salidas, digitos):
+    """Las velas de la operación con su geometría encima."""
+    if not salidas:
+        return ""
+    t_fin = max(t for t, _ in salidas)
+    velas = mt5.copy_rates_range(
+        simbolo, mt5.TIMEFRAME_M15,
+        dt.datetime.fromtimestamp(t_in - VELAS_ANTES * 900),
+        dt.datetime.fromtimestamp(t_fin + VELAS_DESPUES * 900))
+    if velas is None or len(velas) < 5:
+        return ""
+
+    n = len(velas)
+    niveles = [entrada] + [v for v in (stop, objetivo) if v]
+    lo = min(float(velas["low"].min()), *niveles)
+    hi = max(float(velas["high"].max()), *niveles)
+    pad = (hi - lo) * 0.07 or 0.01
+    lo, hi = lo - pad, hi + pad
+
+    util = ANCHO - IZQ - DER
+    x = lambda k: IZQ + util * (k + 0.5) / n
+    y = lambda pr: ARR + (ALTO - ARR - ABA) * (hi - float(pr)) / (hi - lo)
+    grosor = max(1.6, util / n * 0.62)
+
+    P = []
+    k_in = max(0, int((t_in - velas["time"][0]) // 900))
+    k_out = min(n - 1, int((t_fin - velas["time"][0]) // 900))
+    x1, x2 = x(k_in), max(x(k_out), x(k_in) + 6)
+
+    for nivel, clase in ((stop, "riesgo"), (objetivo, "premio")):
+        if not nivel:
+            continue
+        ya, yb = sorted((y(entrada), y(nivel)))
+        P.append(f'<rect x="{x1:.1f}" y="{ya:.1f}" width="{x2 - x1:.1f}" '
+                 f'height="{yb - ya:.1f}" class="{clase}"/>')
+
+    for k in range(n):
+        v = velas[k]
+        cx = x(k)
+        c = "alcista" if v["close"] >= v["open"] else "bajista"
+        P.append(f'<line x1="{cx:.1f}" y1="{y(v["high"]):.1f}" x2="{cx:.1f}" '
+                 f'y2="{y(v["low"]):.1f}" class="mecha {c}"/>')
+        ya, yb = sorted((y(v["open"]), y(v["close"])))
+        P.append(f'<rect x="{cx - grosor / 2:.1f}" y="{ya:.1f}" '
+                 f'width="{grosor:.1f}" height="{max(1.0, yb - ya):.1f}" '
+                 f'class="cuerpo {c}"/>')
+
+    for nivel, clase in ((objetivo, "lprem"), (entrada, "lent"), (stop, "lries")):
+        if not nivel:
+            continue
+        yy = y(nivel)
+        P.append(f'<line x1="{x1:.1f}" y1="{yy:.1f}" x2="{ANCHO - DER}" '
+                 f'y2="{yy:.1f}" class="{clase}"/>')
+        P.append(f'<text x="{ANCHO - DER + 4}" y="{yy + 3.5:.1f}" '
+                 f'class="etq {clase}">{nivel:.{digitos}f}</text>')
+
+    for i, (t, precio) in enumerate(sorted(salidas)):
+        k = int((t - velas["time"][0]) // 900)
+        if 0 <= k < n:
+            cual = "parcial" if i == 0 and len(salidas) > 1 else "final"
+            P.append(f'<circle cx="{x(k):.1f}" cy="{y(precio):.1f}" r="3.4" '
+                     f'class="salida {cual}"/>')
+    P.append(f'<circle cx="{x1:.1f}" cy="{y(entrada):.1f}" r="3.8" class="marcaent"/>')
+
+    for k in (0, n // 2, n - 1):
+        ts = dt.datetime.fromtimestamp(int(velas["time"][k]))
+        anc = "start" if k == 0 else ("end" if k == n - 1 else "middle")
+        P.append(f'<text x="{x(k):.1f}" y="{ALTO - 6}" class="eje" '
+                 f'text-anchor="{anc}">{ts.strftime("%d/%m %H:%M")}</text>')
+
+    return (f'<svg viewBox="0 0 {ANCHO} {ALTO}" class="gr" '
+            f'preserveAspectRatio="xMidYMid meet">{"".join(P)}</svg>')
 
 
 def _riesgo_de(venta, simbolo, lotes, entrada, stop):
@@ -302,6 +406,7 @@ PLANTILLA = r"""<!doctype html>
   /* --- tarjetas --- */
   .mazo{display:grid;gap:.8rem;margin-top:1rem;
         grid-template-columns:repeat(auto-fill,minmax(258px,1fr))}
+  #listaCerradas .mazo{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
   .t{background:var(--tarjeta);border:1px solid var(--rule);
      border-left:4px solid var(--rule);padding:.85rem .95rem;
      display:flex;flex-direction:column;gap:.5rem}
@@ -323,6 +428,27 @@ PLANTILLA = r"""<!doctype html>
   .venta{color:var(--bear)} .compra{color:var(--bull)}
   .marca{font-size:.64rem;letter-spacing:.05em;color:var(--mark);
          border:1px solid var(--mark);padding:.05rem .3rem;white-space:nowrap}
+  /* --- el grafico de cada operacion --- */
+  .gr{width:100%;height:auto;display:block;margin:.15rem 0 .1rem;
+      background:color-mix(in srgb,var(--paper) 55%,transparent);
+      border:1px solid color-mix(in srgb,var(--rule) 55%,transparent)}
+  .cuerpo.alcista,.mecha.alcista{fill:var(--bull);stroke:var(--bull)}
+  .cuerpo.bajista,.mecha.bajista{fill:var(--bear);stroke:var(--bear)}
+  .mecha{stroke-width:1}
+  .riesgo{fill:var(--bear);opacity:.12}
+  .premio{fill:var(--bull);opacity:.12}
+  .lent{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:3 2}
+  .lries{stroke:var(--bear);stroke-width:1;stroke-dasharray:4 3}
+  .lprem{stroke:var(--bull);stroke-width:1;stroke-dasharray:4 3}
+  .etq{font-family:'IBM Plex Mono',monospace;font-size:8.5px;stroke:none}
+  text.lent{fill:var(--ink)}
+  text.lries{fill:var(--bear)}
+  text.lprem{fill:var(--bull)}
+  .marcaent{fill:var(--paper);stroke:var(--ink);stroke-width:1.6}
+  .salida.parcial{fill:var(--mark);stroke:var(--paper);stroke-width:1}
+  .salida.final{fill:var(--ink);stroke:var(--paper);stroke-width:1}
+  .eje{font-family:'IBM Plex Mono',monospace;font-size:8px;fill:var(--muted)}
+
   .vacio{background:var(--tarjeta);border:1px dashed var(--rule);
          padding:1.1rem;color:var(--muted);font-style:italic;margin-top:1rem}
   .nota{color:var(--muted);font-style:italic;margin:.7rem 0 0;font-size:.88rem}
@@ -515,8 +641,10 @@ function pintarCerradas() {
         ${c.parcial ? '<span class="marca">con parcial</span>' : ""}
         <span class="r ${signo(c.r)}">${conR(c.r)} R</span>
       </div>
+      ${c.grafico || ""}
       <div class="dinero ${signo(c.beneficio)}">${eur(c.beneficio)}</div>
-      <div class="linea"><span>Entrada</span><span class="mono">${esc(c.abierta)}</span></div>
+      <div class="linea"><span>Entrada</span><span class="mono">${c.entrada}</span></div>
+      <div class="linea"><span>Abierta</span><span class="mono">${esc(c.abierta)}</span></div>
       <div class="linea"><span>Cierre</span><span class="mono">${esc(c.cerrada)}</span></div>
       <div class="linea"><span>Duración</span><span class="mono">${c.horas} h</span></div>
     </article>`),
@@ -568,36 +696,142 @@ document.getElementById("pie").textContent =
 # ---------------------------------------------------------------- principal
 
 
+def publicar(salida):
+    """
+    Sube la página a GitHub para que la app la vea.
+
+    Rebasa antes de empujar: el bot de Vantage sigue publicando `data.json` por
+    su cuenta, así que el remoto avanza solo y un push a secas lo rechazaría.
+    """
+    def git(*args, **kw):
+        return subprocess.run(["git", *args], capture_output=True, text=True, **kw)
+
+    # El orden importa: primero el commit, DESPUES el rebase. Al reves git se
+    # niega -- "cannot pull with rebase: you have unstaged changes" -- porque
+    # la pagina acaba de reescribirse.
+    git("add", salida)
+    marca = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
+    r = git("commit", "-m", f"Espejo de la EA — {marca}")
+    if "nothing to commit" in (r.stdout + r.stderr):
+        return "sin cambios que subir"
+
+    # autoStash: cualquier otro fichero del repositorio que este a medias no
+    # tiene por que bloquear la publicacion. Git lo guarda, rebasa, y lo
+    # devuelve tal cual estaba.
+    r = git("-c", "rebase.autoStash=true", "pull", "--rebase", "origin", "main")
+    if r.returncode:
+        return f"no se pudo rebasar: {(r.stderr or r.stdout).strip()[:90]}"
+
+    r = git("push", "origin", "main")
+    if r.returncode:
+        return f"no se pudo subir: {(r.stderr or r.stdout).strip()[:90]}"
+    return "publicado"
+
+
+def _sin_marca(html):
+    """El contenido sin la hora de generación, para comparar dos versiones."""
+    return re.sub(r'"generado": *"[^"]*"', "", html)
+
+
+def una_vuelta(salida):
+    """
+    Lee el terminal y reescribe la página. Devuelve (datos, resumen, cambió).
+
+    `cambió` compara ignorando la hora de generación: sin eso, la página sería
+    distinta en cada vuelta aunque no hubiera pasado nada, y publicarla
+    dejaría noventa y seis commits al día sin ninguna información dentro.
+    """
+    d = leer_terminal()
+    if "error" in d:
+        return None, d["error"], False
+
+    nuevo = render(d)
+    antes = ""
+    if os.path.exists(salida):
+        antes = io.open(salida, encoding="utf-8").read()
+    cambio = _sin_marca(antes) != _sin_marca(nuevo)
+
+    io.open(salida, "w", encoding="utf-8").write(nuevo)
+
+    texto = (f"abiertas {len(d['abiertas'])}  pendientes {len(d['pendientes'])}"
+             f"  cerradas {len(d['cerradas'])}")
+    if d["cerradas"]:
+        r = [x["r"] for x in d["cerradas"]]
+        gana = sum(1 for x in r if x > 0)
+        texto += f"  |  {100.0 * gana / len(r):.0f}% acierto  {sum(r):+.2f} R"
+    return d, texto, cambio
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--salida", default=SALIDA)
     ap.add_argument("--abrir", action="store_true")
+    ap.add_argument("--cada", type=int, default=0, metavar="MINUTOS",
+                    help="rehacer la página cada N minutos, sin parar")
+    ap.add_argument("--publicar", action="store_true",
+                    help="subirla a GitHub cuando cambie, para que la app la vea")
     args = ap.parse_args()
 
-    d = leer_terminal()
-    if "error" in d:
-        print(" ", d["error"])
-        print("  ¿Está MetaTrader 5 abierto?")
-        return 1
+    # --- una sola vez ------------------------------------------------
+    if args.cada <= 0:
+        d, texto, _ = una_vuelta(args.salida)
+        print()
+        if d is None:
+            print(" ", texto)
+            print("  ¿Está MetaTrader 5 abierto?")
+            return 1
+        print(f"  {args.salida} escrito.")
+        print(f"  {texto}")
+        print()
+        if args.abrir:
+            os.startfile(os.path.abspath(args.salida))
+        return 0
 
-    io.open(args.salida, "w", encoding="utf-8").write(render(d))
-
+    # --- en bucle ----------------------------------------------------
+    #
+    # Se reconecta al terminal en cada vuelta y suelta la conexión al
+    # terminar: si MetaTrader se cierra o se reinicia, la vuelta siguiente
+    # vuelve a engancharse sola en vez de quedarse colgada para siempre.
     print()
-    print(f"  {args.salida} escrito.")
-    print(f"  abiertas {len(d['abiertas'])}   pendientes {len(d['pendientes'])}"
-          f"   cerradas {len(d['cerradas'])}")
-    if d["cerradas"]:
-        r = [x["r"] for x in d["cerradas"]]
-        gana = sum(1 for x in r if x > 0)
-        print(f"  {len(r)} operaciones, {100.0 * gana / len(r):.1f}% de acierto, "
-              f"{sum(r):+.2f} R")
-    else:
-        print("  el robot todavía no ha cerrado ninguna operación")
+    print(f"  Rehaciendo {args.salida} cada {args.cada} minutos.")
+    print("  Para parar: Ctrl+C")
     print()
-
     if args.abrir:
+        una_vuelta(args.salida)
         os.startfile(os.path.abspath(args.salida))
-    return 0
+    if args.publicar:
+        print("  Se publicará en GitHub cada vez que cambie algo.")
+        print()
+
+    fallos = 0
+    try:
+        while True:
+            marca = dt.datetime.now().strftime("%H:%M:%S")
+            try:
+                d, texto, cambio = una_vuelta(args.salida)
+            except Exception as e:               # noqa: BLE001
+                d, texto, cambio = None, f"error inesperado: {e}", False
+
+            if d is None:
+                fallos += 1
+                print(f"  {marca}  sin datos ({texto})")
+                # Un aviso cada cuatro fallos seguidos, no en cada vuelta:
+                # con MetaTrader cerrado esto llenaría la pantalla.
+                if fallos % 4 == 1:
+                    print("            ¿Está MetaTrader 5 abierto y conectado?")
+            else:
+                if fallos:
+                    print(f"  {marca}  recuperado")
+                fallos = 0
+                print(f"  {marca}  {texto}")
+                if args.publicar and cambio:
+                    print(f"            {publicar(args.salida)}")
+
+            time.sleep(args.cada * 60)
+    except KeyboardInterrupt:
+        print()
+        print("  Parado.")
+        return 0
 
 
 if __name__ == "__main__":
