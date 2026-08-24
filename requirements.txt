@@ -1,17 +1,8 @@
-# Vantage — dependencias
+# Vantage EA — dependencias
 # Instalar con: pip install -r requirements.txt
 
-pandas>=2.0
-python-dotenv>=1.0
-
-# Datos de mercado: divisas, metales, índices y acciones.
-yfinance>=0.2.40
-
-# El extra [job-queue] es obligatorio: sin él no existe app.job_queue
-# y el modo --daemon no puede programar las revisiones periódicas.
-python-telegram-bot[job-queue]>=20.0
-
-# Opcional: revisión con IA (editorial del panel + análisis de los candidatos).
-# Sin esto Vantage funciona igual, con el resumen generado por reglas.
-# La clave se saca gratis en https://aistudio.google.com
-google-genai>=1.0
+# Lo unico que hace falta: el puente con el terminal de MetaTrader 5.
+# Solo lectura. El espejo no envia ordenes.
+#
+# Solo existe para Windows: es el sistema donde corre MT5.
+MetaTrader5>=5.0.45

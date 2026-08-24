@@ -1,356 +1,84 @@
-# Vantage
+# Vantage EA — Order Blocks en MetaTrader 5
 
-Panel privado + bot de Telegram que vigila un watchlist y te avisa cuando
-aparece un setup, con niveles de entrada, take profit y stop loss.
+Un robot que opera order blocks en MT5, y una página que enseña lo que está
+haciendo, actualizada sola cada quince minutos.
 
-**Vantage no opera.** No tiene acceso a ningún bróker, no guarda credenciales
-de trading y no hay nada en el código que pueda mandar una orden. Solo mira el
-mercado y te lo cuenta; las órdenes las pasás vos a mano, donde quieras.
-
-No es asesoría financiera regulada.
-
----
-
-## Qué hace cada archivo
-
-| Archivo | Qué es |
-|---|---|
-| `universe.py` | El **universo amplio** que el radar rastrea a diario (~180 símbolos) |
-| `scanner.py` | Barrido diario: puntúa el universo y asciende los mejores |
-| `fundamentals.py` | Cifras económicas de cada empresa (valoración, márgenes, deuda, resultados) |
-| `ai.py` | Revisión con Gemini: cruza lo técnico con lo económico. **Opcional** |
-| `market.py` | Datos de Yahoo Finance y tu **watchlist fija** |
-| `analyzer.py` | Indicadores y señales (ENTRADA / OBSERVAR / PRECAUCION), en compra y en venta |
-| `bot.py` | Bot de Telegram: avisos y comandos `/revisar` y `/estado` |
-| `publish.py` | Genera `data.json`, que es lo que lee el panel |
-| `dashboard.html` | El boletín. Se publica en GitHub Pages y se instala como app en el iPhone |
-| `.env.example` | Plantilla — copiar a `.env` y completar (solo si corrés en local) |
-| `.github/workflows/vantage.yml` | Seguimiento horario en los servidores de GitHub |
-| `.github/workflows/radar.yml` | Barrido diario del universo amplio |
-
-Funciona en dos niveles:
+No hay señales de acciones, ni Telegram, ni IA. Eso era el proyecto anterior y
+está retirado; vive en el historial de git si alguna vez hace falta.
 
 ```
-universe.py (180 símbolos)  ──velas diarias──> scanner.py ──ordena──> radar diario a Telegram
-                                                    │
-                                    asciende los 8 mejores
-                                                    ▼
-market.py (tu lista fija) + ascendidos ──velas horarias──> analyzer.py ──> avisos a Telegram
-                                                    │
-                                                    └──> publish.py ──> dashboard.html
+espejo.py             lee MT5 y escribe la pagina
+a_tradingview.py      escribe un indicador de Pine con las operaciones
+arrancar_espejo.bat   doble clic -> bucle de 15 minutos que publica solo
+dashboard.html        la pagina (generada, no editar a mano)
+manifest.json         para que se instale como app en el movil
+tradingview/          los indicadores generados, uno por simbolo
 ```
 
-**Por qué dos niveles y no uno.** Rastrear 180 símbolos cada hora no es viable
-—Yahoo corta el acceso— y tampoco sería útil: te llegarían treinta avisos al día
-y dejarías de leerlos. La vela diaria dice **si el setup existe**; la horaria,
-**cuándo entrar**. El radar busca dónde mirar, el seguimiento vigila.
+## Las dos piezas
 
-La única credencial de todo el proyecto es el token de Telegram. Vive en `.env`
-si corrés en local, o como *secret* del repo si usás GitHub Actions. En ninguno
-de los dos casos acaba en el código.
+**El robot** vive fuera de este repositorio, en
+`Desktop/motor/mt5/`, porque se compila dentro de MetaTrader.
+Este repositorio solo lo observa.
 
-`data.json` se sube al repo a propósito: además de alimentar el panel, guarda
-qué señales ya te avisó, para no repetirlas en la ronda siguiente.
+**El espejo** lee el terminal de MT5 y genera `dashboard.html`. Cada quince
+minutos rehace la página; si algo cambió de verdad, hace commit y lo sube a
+GitHub Pages, que es de donde tira la app instalada en el móvil.
 
----
+## Ponerlo en marcha
 
-## 1. Probar (opcional, solo si tenés Python)
-
-Si vas a usar GitHub Actions, podés saltarte esta sección entera: la primera
-ejecución del workflow hace de prueba.
-
-```bash
+```
 pip install -r requirements.txt
-cp .env.example .env        # completá el token y el chat ID de Telegram
-
-python market.py            # ¿responden todos los símbolos?
-python analyzer.py          # ¿salen señales?
-python publish.py           # genera data.json
-python bot.py               # manda una ronda de avisos
 ```
 
-`market.py` comprueba símbolo por símbolo que Yahoo devuelve datos y te dice
-cuántas velas trae cada uno.
+Después, doble clic en `arrancar_espejo.bat`. Hacen falta tres cosas
+encendidas: el ordenador, MetaTrader abierto y conectado, y esa ventana sin
+cerrar. Si falta cualquiera, la app se queda con la última foto.
 
-## Las dos listas
-
-**`market.py` → `WATCHLIST`** es tu lista fija: lo que se vigila cada hora,
-pase lo que pase. Once símbolos de partida.
-
-**`universe.py`** es lo que el radar rastrea a diario. Unos 180: los pares de
-divisas líquidos, materias primas, índices globales y grandes cotizadas de
-EE.UU. y Europa. De ahí ascienden 8 cada día al seguimiento horario, y rotan
-solos según lo que encuentre.
-
-En Telegram y en el panel, lo que viene del radar sale marcado, para que sepas
-si un aviso es de tu lista o un hallazgo.
-
-Se pueden ampliar los dos. Añadir al universo cuesta tiempo de ejecución: 180
-símbolos tardan alrededor de un minuto porque se descargan por lotes de 40.
-Con 400 iría bien; con 3.000, Yahoo te cortaría.
-
-### Formato de los símbolos
-
-El watchlist fijo va como lista de tuplas:
-`(ticker de Yahoo, nombre a mostrar, clase de activo)`.
-
-Para añadir algo, buscalo en finance.yahoo.com y copiá el símbolo de la URL.
-La nomenclatura tiene truco:
-
-| Tipo | Formato | Ejemplos |
-|---|---|---|
-| Divisas | `PAR=X` | `EURUSD=X`, `USDJPY=X`, `EURGBP=X` |
-| Materias primas | `TICKER=F` | `GC=F` (oro), `SI=F` (plata), `CL=F` (petróleo) |
-| Índices | `^TICKER` | `^NDX`, `^GSPC`, `^DJI`, `^GDAXI`, `^FTSE` |
-| Acciones | el ticker | `NVDA`, `PLTR`, `SNOW` |
-
-### Volumen: por qué el forex es distinto
-
-En divisas, Yahoo devuelve **volumen cero**. No es un fallo: el mercado forex
-es descentralizado y no existe un volumen consolidado.
-
-Eso importa porque el analyzer usa un pico de actividad como una de las tres
-condiciones de entrada. Si exigiera volumen, ningún par de divisas daría jamás
-una señal. Cuando no hay volumen, el sistema usa en su lugar la **expansión del
-rango**: una vela mucho más ancha de lo habitual indica la misma actividad.
-
-En el panel y en Telegram se indica cuál de los dos se usó en cada caso.
-
----
-
-## 2. Publicar el panel
-
-Repo en GitHub → Settings → Pages → branch `main`, carpeta `/ (root)`.
-
-En un par de minutos:
+Una vuelta suelta, sin bucle y sin publicar:
 
 ```
-https://TU_USUARIO.github.io/vantage/dashboard.html
+python espejo.py --abrir
 ```
 
-**En el iPhone:** abrí esa URL en **Safari** → compartir → *Agregar a pantalla
-de inicio*. Queda como una app.
+## Lo que hay que saber para tocarlo
 
-Antes del primer `git push`, comprobá que `.env` no aparece en `git status`.
+**Filtra por número mágico `20260822`.** La cuenta demo la comparte con otro
+robot que usa el mágico `990101` y suele tener posiciones abiertas. Sin ese
+filtro el espejo enseñaría las de ese otro robot como si fueran de la EA. Si se
+cambia el mágico en el robot, hay que cambiarlo también en `espejo.py`.
 
-Si abrís el panel antes de generar datos, verás un boletín vacío que te indica
-qué falta. Es lo esperado.
+**Solo lee.** Todas las llamadas a la API de MT5 son de consulta. El espejo no
+envía ninguna orden ni toca ninguna posición.
 
----
+**Los R salen de dividir entre `RIESGO_POR_OPERACION = 500`**, que es un
+parámetro del robot y no se puede deducir del historial de una operación ya
+cerrada. Si cambia allí, cambiarlo aquí.
 
-## 3. Dejarlo corriendo
+**Agrupa por posición, no por transacción.** Una operación con parcial genera
+DOS transacciones de salida. Contarlas sueltas es lo que hace que 16
+operaciones aparezcan como 27 en los informes del probador de MT5.
 
-Hay dos formas. **La recomendada no necesita instalar nada en tu ordenador.**
+**El resumen se recalcula con los filtros puestos.** Si no, engañaría: enseñaría
+trece operaciones de un día con el balance de seis meses. Y una operación que
+sale plana cuenta como perdida: con break-even eso pasa a menudo, y meterla en
+las ganadas inflaría el acierto.
 
-### Opción A — GitHub Actions (sin Python en tu PC)
+**MT5 da las horas en hora del servidor**, no en UTC. `a_tradingview.py` mide el
+desfase contra el reloj real en cada ejecución en vez de suponerlo; si se
+equivoca, las cajas del gráfico salen corridas tres horas.
 
-El repo trae `.github/workflows/vantage.yml`. GitHub ejecuta el análisis en sus
-servidores, te manda el aviso por Telegram y sube los datos del panel él solo.
-Tu ordenador puede estar apagado.
+## TradingView
 
-Solo hay que guardar el token donde GitHub pueda leerlo:
-
-> Settings → Secrets and variables → Actions → **New repository secret**
-> - `TELEGRAM_BOT_TOKEN` = tu token
-> - `TELEGRAM_CHAT_ID` = tu chat id
-
-Los secrets no se ven ni en un repo público, y no aparecen en los logs.
-
-Por defecto revisa **cada hora, de 06:00 a 21:00 UTC, de lunes a viernes**.
-Para cambiarlo, editá la línea `cron` del workflow. En la pestaña **Actions**
-tenés un botón *Run workflow* que lanza una revisión al momento — es el
-sustituto de `/revisar`, y funciona desde la app de GitHub en el móvil.
-
-Lo que hay que saber de este camino:
-
-- **El horario no es puntual.** GitHub retrasa las tareas programadas cuando
-  hay carga, a veces varios minutos. Por eso el cron está en el minuto 17 y no
-  en punto: las tareas en punto se acumulan y sufren más retraso.
-- **El cron va en UTC**, no en hora española. En verano, España es UTC+2.
-- **Se pierden los comandos del chat.** `/revisar` y `/estado` necesitan un
-  proceso vivo escuchando; en Actions no lo hay. Queda el botón *Run workflow*.
-- **Repo público**: minutos de Actions ilimitados. En repo privado, el plan
-  gratuito da 2.000 minutos al mes, que da justo para esta frecuencia.
-- **Los workflows programados se desactivan solos** tras 60 días sin actividad
-  en el repo. Como cada ejecución hace commit de `data.json`, no debería pasar,
-  pero si un día dejan de llegar avisos, mirá la pestaña Actions: aparece un
-  botón para reactivarlo.
-
-### Opción B — en tu propio ordenador
-
-Necesita Python instalado (python.org, marcando *Add Python to PATH*).
-
-```bash
-python bot.py --daemon
+```
+python a_tradingview.py
 ```
 
-Revisa cada 30 minutos, manda los avisos y regenera `data.json`. Con
-`PANEL_AUTO_PUSH=true` en el `.env`, además sube los datos y el panel se
-actualiza solo. A cambio de la instalación, conservás `/revisar` y `/estado`.
+Escribe un fichero `.pine` por símbolo en `tradingview/`. Se copia entero, se
+pega en el Pine Editor de TradingView y se pulsa "Añadir al gráfico". Dibuja
+cada operación con dos cajas —entrada al stop en rojo, entrada al objetivo en
+verde— y una etiqueta con el resultado en R.
 
-Si lo montás como servicio, acordate de que el proceso corre sin vos delante:
-`git` no puede pedirte contraseña. Configurá una clave SSH sin passphrase o un
-credential helper, o el push fallará en silencio cada media hora.
-
-### Windows (Programador de tareas)
-
-Nueva tarea → desencadenador *Al iniciar sesión* → acción: `pythonw.exe` con
-argumentos `bot.py --daemon`, e **Iniciar en** la carpeta del proyecto (ahí se
-escriben el log y `data.json`).
-
-### Linux (systemd)
-
-```ini
-[Unit]
-Description=Vantage
-After=network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=/RUTA/A/vantage
-ExecStart=/usr/bin/python3 /RUTA/A/vantage/bot.py --daemon
-Restart=always
-RestartSec=10
-User=TU_USUARIO
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl daemon-reload && sudo systemctl enable --now vantage
-```
-
-En Mac, lo mismo con un `.plist` en `~/Library/LaunchAgents/`.
-
----
-
-## 4. Ajustar la sensibilidad
-
-En `scanner.py`:
-
-| Parámetro | Por defecto | Qué controla |
-|---|---|---|
-| `PROMOTE_TOP` | 8 | Cuántos ascienden a seguimiento horario cada día |
-| `RADAR_TOP` | 20 | Cuántos se muestran en la tabla del panel |
-| `BATCH_SIZE` | 40 | Símbolos por petición a Yahoo |
-
-En la cabecera de `analyzer.py`:
-
-| Parámetro | Por defecto | Qué controla |
-|---|---|---|
-| `MIN_RR` | 1.8 | Riesgo/beneficio mínimo para llamarlo entrada |
-| `SL_ATR_MULT` | 1.8 | Distancia del stop, en múltiplos de ATR |
-| `VOLUME_SPIKE_MULT` | 1.8 | Cuánto volumen se considera inusual |
-| `RANGE_SPIKE_MULT` | 1.6 | Lo mismo, por rango, cuando no hay volumen |
-| `RSI_PERIOD` / `ATR_PERIOD` | 14 | Ventanas de los indicadores |
-| `SR_LOOKBACK` | 60 | Velas hacia atrás para soporte y resistencia |
-
-En `bot.py`: `CHECK_INTERVAL_MINUTES` y `ALERT_ON`, que decide de qué señales
-te avisa (por defecto, entradas y precauciones; las de observación solo salen
-en el panel para no llenarte el chat).
-
----
-
-### Cómo se ordena el radar
-
-La puntuación pondera el riesgo/beneficio, cuánta actividad inusual hay y cuán
-separadas están las medias (medido en ATR, para poder comparar el Nasdaq con el
-euro). Resta puntos si el RSI ya va camino del extremo, porque queda menos
-recorrido.
-
-Es una heurística, no una probabilidad. Que ordene bien está tan sin validar
-como el resto del sistema.
-
----
-
-## La revisión con IA (opcional)
-
-Sin configurar, Vantage funciona igual: el editorial se genera con reglas y el
-radar ordena por su puntuación. Con `GEMINI_API_KEY`, los 8 mejores candidatos
-de cada día pasan por una segunda lectura.
-
-### Qué hace exactamente
-
-Por cada candidato, el modelo recibe dos bloques de datos: la señal técnica que
-calculó el sistema, y las cifras económicas de la empresa que trae
-`fundamentals.py` desde Yahoo Finance — sector, PER, márgenes, crecimiento,
-deuda, consenso de analistas y fecha de próximos resultados.
-
-Devuelve un veredicto de tres valores —**respaldar**, **matizar** o
-**descartar**— con nivel de convicción, la lectura técnica, la económica, los
-riesgos concretos y qué hecho invalidaría la idea. Todo eso aparece desplegable
-en la tabla del Radar y resumido en el mensaje de Telegram.
-
-Además hay una llamada extra que mira los candidatos **como conjunto**, para
-detectar concentración: si cinco de los ocho son la misma apuesta macro
-repetida, te lo dice. El sistema técnico analiza cada símbolo aislado y no tiene
-ninguna noción de correlación, así que esto tapa un hueco real.
-
-### Por qué el prompt está escrito así
-
-Tres decisiones deliberadas, todas en `ai.py`:
-
-**Se le prohíbe usar su memoria.** Si le pides análisis fundamental sin darle
-datos, un modelo inventa cifras a partir de su entrenamiento — números de hace
-más de un año, presentados con total seguridad. Por eso existe
-`fundamentals.py`: el modelo solo ve datos con fuente, y la regla 1 le obliga a
-escribir "sin datos" cuando falta algo.
-
-**Se le prohíbe predecir.** Nada de "subirá" ni de probabilidades. Un modelo de
-lenguaje no es un pronosticador de precios; pedirle que lo sea produce prosa
-convincente sin valor predictivo.
-
-**Se le autoriza a decir que no.** La regla 5 le anima explícitamente a
-responder "descartar". Un revisor que siempre respalda no revisa: solo añade
-párrafos que hacen parecer más sólida una señal que no ha cambiado. Ese es el
-riesgo real de meter IA aquí, y por eso está escrito así.
-
-### Coste
-
-Unas 10 llamadas al día: 8 candidatos, la visión de conjunto y el editorial.
-El plan gratuito de Google AI Studio permite del orden de mil diarias con los
-modelos Flash, así que en la práctica no pagas nada.
-
-Dos advertencias del plan gratuito: tus peticiones pueden usarse para mejorar
-los productos de Google, y activar la facturación **elimina** la asignación
-gratuita en lugar de sumarse a ella. No pongas tarjeta hasta necesitarlo.
-
-### Configurarlo
-
-1. Saca la clave en [aistudio.google.com](https://aistudio.google.com) — gratis,
-   sin tarjeta.
-2. En el repo: Settings → Secrets and variables → Actions → nuevo secret
-   `GEMINI_API_KEY`.
-3. Si el modelo por defecto da error, crea una *variable* (no secret) llamada
-   `GEMINI_MODEL` con uno de la familia Flash que tengas disponible. Los
-   modelos Pro salieron del plan gratuito en abril de 2026.
-
-### Lo que no arregla
-
-La IA lee, contrasta y avisa de contradicciones. No sabe si las señales
-aciertan, y su comentario sobre una señal sin validar sigue siendo comentario
-sobre una señal sin validar.
-
-Hay un riesgo que conviene tener presente: un párrafo bien escrito al lado de
-una recomendación aumenta la confianza más que el acierto. Si en algún momento
-notas que actúas por lo que dice el análisis y no por los niveles, apágalo.
-
----
-
-## Lo que falta
-
-La lógica —medias 20/50, RSI, ATR y pico de actividad— **no está validada
-contra histórico**. Que el sistema funcione no dice nada sobre si acierta.
-
-Antes de darle peso a sus recomendaciones, lo razonable es un backtest sobre
-varios años que muestre cuántas señales hubo, qué proporción llegó al take
-profit y cuál fue la peor racha. Es la pieza que falta.
-
-Otras ideas:
-
-- Filtro de sesión: no avisar en horas de poca liquidez
-- Filtro de calendario económico
-- Registro de las señales para poder medirlas después
-- Ampliar el universo a más bolsas europeas y asiáticas
-- Contexto de noticias con búsqueda de Google (5.000 consultas gratis al mes)
+Los precios son los del bróker de MT5 y la cotización de TradingView viene de
+otra fuente, así que puede haber unos pocos puntos de diferencia. Sirve para ver
+dónde y cómo, no para auditar el llenado al tick.

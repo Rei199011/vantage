@@ -1,16 +1,8 @@
 # Credenciales — nunca subir esto
 .env
 *.env
-!.env.example
 
 *.log
-
-# OJO: data.json, events.json, radar.json y watchlist_auto.json SÍ se suben.
-# data.json es lo que lee el panel, y además guarda qué señales ya se avisaron
-# para no repetirlas. events.json es el historial del teletipo. Si los ignorás,
-# GitHub Actions te avisaría de lo mismo en cada ejecución. radar.json alimenta
-# la tabla del radar, y watchlist_auto.json es lo que el escáner ascendió a
-# seguimiento horario: sin él, cada ronda vigilaría solo tu lista fija.
 
 # Python
 __pycache__/
@@ -20,3 +12,4 @@ venv/
 
 # Sistema
 .DS_Store
+Thumbs.db

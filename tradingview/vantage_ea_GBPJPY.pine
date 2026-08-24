@@ -1,0 +1,66 @@
+//@version=6
+// =====================================================================
+//  Vantage EA — operaciones en GBPJPY
+//
+//  Generado por a_tradingview.py a partir del historial de MetaTrader 5.
+//  Copiar entero, pegar en el Pine Editor y pulsar "Añadir al gráfico".
+//
+//  Cada operación se dibuja con dos cajas desde la vela de entrada hasta
+//  la de salida: la ROJA va de la entrada al stop y la VERDE de la entrada
+//  al objetivo. La etiqueta lleva el resultado en R.
+//
+//  Las marcas de tiempo vienen de MT5, que las da en hora del SERVIDOR
+//  (UTC+3). Ya están pasadas a UTC, que es lo que usa Pine.
+//
+//  Los precios son los del bróker de MT5. La cotización de TradingView es
+//  de otra fuente, así que puede haber unos pocos puntos de diferencia:
+//  sirve para ver DÓNDE y CÓMO, no para auditar el llenado al tick.
+// =====================================================================
+indicator("Vantage EA — GBPJPY", overlay = true, max_boxes_count = 500, max_labels_count = 500)
+
+mostrarStop     = input.bool(true,  "Caja del stop")
+mostrarObjetivo = input.bool(true,  "Caja del objetivo")
+mostrarEtiqueta = input.bool(true,  "Etiqueta con el resultado")
+
+var int[]    tIn      = array.from(1787561944000)
+var int[]    tOut     = array.from(1787587348000)
+var float[]  entrada  = array.from(216.876)
+var float[]  stop     = array.from(216.617)
+var float[]  objetivo = array.from(217.652)
+var float[]  erre     = array.from(0.71)
+var bool[]   esVenta  = array.from(false)
+
+var bool pintado = false
+
+if not pintado and barstate.islast
+    pintado := true
+    for i = 0 to array.size(tIn) - 1
+        int  t1 = array.get(tIn, i)
+        int  t2 = array.get(tOut, i)
+        float e = array.get(entrada, i)
+        float s = array.get(stop, i)
+        float o = array.get(objetivo, i)
+        float r = array.get(erre, i)
+        bool  v = array.get(esVenta, i)
+
+        color tono = r > 0 ? color.new(color.teal, 82) : color.new(color.red, 82)
+
+        if mostrarStop and s > 0
+            box.new(t1, math.max(e, s), t2, math.min(e, s),
+                 xloc = xloc.bar_time, border_color = color.new(color.red, 45),
+                 bgcolor = color.new(color.red, 90))
+
+        if mostrarObjetivo and o > 0
+            box.new(t1, math.max(e, o), t2, math.min(e, o),
+                 xloc = xloc.bar_time, border_color = color.new(color.teal, 45),
+                 bgcolor = color.new(color.teal, 90))
+
+        line.new(t1, e, t2, e, xloc = xloc.bar_time,
+                 color = color.new(color.gray, 20), width = 2)
+
+        if mostrarEtiqueta
+            label.new(t1, e, xloc = xloc.bar_time,
+                 text = (v ? "VENTA" : "COMPRA") + "  " +
+                        (r > 0 ? "+" : "") + str.tostring(r, "#.00") + " R",
+                 style = v ? label.style_label_down : label.style_label_up,
+                 color = tono, textcolor = chart.fg_color, size = size.small)

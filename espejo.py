@@ -313,8 +313,15 @@ PLANTILLA = r"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Vantage EA</title>
+<!-- Sin esto la pagina se abre como una web normal, no como app instalada. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Vantage EA">
+<meta name="theme-color" content="#F4E8DA">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap">
@@ -700,8 +707,9 @@ def publicar(salida):
     """
     Sube la página a GitHub para que la app la vea.
 
-    Rebasa antes de empujar: el bot de Vantage sigue publicando `data.json` por
-    su cuenta, así que el remoto avanza solo y un push a secas lo rechazaría.
+    Rebasa antes de empujar. Ya no hay nada más publicando en este repositorio
+    —el bot de acciones se retiró—, pero el rebase se queda: cuesta nada y
+    cubre el caso de haber tocado el repositorio desde otro sitio.
     """
     def git(*args, **kw):
         return subprocess.run(["git", *args], capture_output=True, text=True, **kw)
