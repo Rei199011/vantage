@@ -3,6 +3,34 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "NVDA",
+    "time": "2026-08-24T19:00:15.731458+00:00",
+    "body": "RSI en <strong>24.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "RKLB",
+    "time": "2026-08-24T19:00:15.731458+00:00",
+    "body": "RSI en <strong>28.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Nivel",
+    "kind_class": "filing",
+    "symbol": "RKLB",
+    "time": "2026-08-24T19:00:15.731458+00:00",
+    "body": "Precio en mínimos de las últimas 60 velas (<strong>68.77</strong>)."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "MSTR",
+    "time": "2026-08-24T19:00:15.731458+00:00",
+    "body": "RSI en <strong>70.8</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "NVDA",
     "time": "2026-08-24T17:47:42.362208+00:00",
     "body": "RSI en <strong>25.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
@@ -54,33 +82,5 @@
     "symbol": "NVDA",
     "time": "2026-08-24T15:56:49.375610+00:00",
     "body": "RSI en <strong>25.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-24T15:56:49.375610+00:00",
-    "body": "RSI en <strong>79.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "NVDA",
-    "time": "2026-08-24T15:01:14.572193+00:00",
-    "body": "RSI en <strong>22.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-24T15:01:14.572193+00:00",
-    "body": "Volumen <strong>4.34x</strong> lo habitual, sin setup válido todavía."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "MSFT",
-    "time": "2026-08-24T15:01:14.572193+00:00",
-    "body": "Setup de <strong>venta</strong> con riesgo/beneficio 1:1.91. Entrada 487.93, stop 493.57."
   }
 ]
