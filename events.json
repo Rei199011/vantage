@@ -3,6 +3,34 @@
     "kind": "Precaución",
     "kind_class": "sentiment",
     "symbol": "NVDA",
+    "time": "2026-08-24T19:45:49.466377+00:00",
+    "body": "RSI en <strong>23.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Nivel",
+    "kind_class": "filing",
+    "symbol": "NVDA",
+    "time": "2026-08-24T19:45:49.466377+00:00",
+    "body": "Precio en mínimos de las últimas 60 velas (<strong>208.41</strong>)."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "RKLB",
+    "time": "2026-08-24T19:45:49.466377+00:00",
+    "body": "RSI en <strong>25.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "DE",
+    "time": "2026-08-24T19:45:49.466377+00:00",
+    "body": "RSI en <strong>71.0</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
+  },
+  {
+    "kind": "Precaución",
+    "kind_class": "sentiment",
+    "symbol": "NVDA",
     "time": "2026-08-24T19:00:15.731458+00:00",
     "body": "RSI en <strong>24.5</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   },
@@ -54,33 +82,5 @@
     "symbol": "NVDA",
     "time": "2026-08-24T16:56:04.633355+00:00",
     "body": "RSI en <strong>27.1</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Volumen",
-    "kind_class": "",
-    "symbol": "NVDA",
-    "time": "2026-08-24T16:56:04.633355+00:00",
-    "body": "Volumen <strong>2.13x</strong> lo habitual, sin setup válido todavía."
-  },
-  {
-    "kind": "Señal",
-    "kind_class": "",
-    "symbol": "AAPL",
-    "time": "2026-08-24T16:56:04.633355+00:00",
-    "body": "Setup de <strong>compra</strong> con riesgo/beneficio 1:1.8. Entrada 312.92, stop 308.76."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "MSTR",
-    "time": "2026-08-24T16:56:04.633355+00:00",
-    "body": "RSI en <strong>73.4</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
-  },
-  {
-    "kind": "Precaución",
-    "kind_class": "sentiment",
-    "symbol": "NVDA",
-    "time": "2026-08-24T15:56:49.375610+00:00",
-    "body": "RSI en <strong>25.7</strong> contra la tendencia de las medias. El movimiento puede estar agotado."
   }
 ]
