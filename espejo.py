@@ -53,12 +53,53 @@ TIPOS_ORDEN = {
 # ---------------------------------------------------------------- lectura
 
 
+# La hora. MetaTrader sella TODO en hora del SERVIDOR y lo entrega como un
+# epoch que hay que leer COMO SI fuera UTC. Pasarlo por datetime.fromtimestamp()
+# le suma encima el huso de este ordenador, y lo que sale no es ni la hora del
+# servidor ni la de aqui: son las dos sumadas. Eso enseñaba las entradas tres
+# horas tarde.
+#
+# El desfase se MIDE contra el reloj real en cada vuelta en lugar de suponerlo,
+# porque cambia solo con el horario de verano.
+
+_DESFASE = 0
+
+
+def _desfase_servidor():
+    """Horas que el reloj del servidor lleva por delante de UTC."""
+    t = mt5.symbol_info_tick("EURUSD")
+    if t is None or not t.time:
+        return 0
+    servidor = dt.datetime.fromtimestamp(t.time, dt.timezone.utc)
+    return round((servidor - dt.datetime.now(dt.timezone.utc)).total_seconds() / 3600)
+
+
+def _servidor(ts):
+    """La marca tal cual la escribe el servidor. Es lo que espera copy_rates."""
+    return dt.datetime.fromtimestamp(ts, dt.timezone.utc).replace(tzinfo=None)
+
+
+def _local(ts):
+    """La marca de MT5 pasada al reloj de quien mira la pagina."""
+    utc = dt.datetime.fromtimestamp(ts, dt.timezone.utc) - dt.timedelta(hours=_DESFASE)
+    return utc.astimezone().replace(tzinfo=None)
+
+
+def _parcial_cobrado(pid):
+    """Lo ya realizado en una posicion que SIGUE viva: el parcial del 1:1."""
+    ds = mt5.history_deals_get(position=pid) or []
+    return round(sum(d.profit + d.swap + d.commission
+                     for d in ds if d.entry != mt5.DEAL_ENTRY_IN), 2)
+
+
 def leer_terminal():
     """Todo lo que hay que saber del terminal, en un diccionario."""
     if not mt5.initialize():
         return {"error": f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"}
 
     try:
+        global _DESFASE
+        _DESFASE = _desfase_servidor()
         ti = mt5.terminal_info()
         ai = mt5.account_info()
         return {
@@ -100,7 +141,7 @@ def _abiertas():
         venta = p.type == mt5.POSITION_TYPE_SELL
         riesgo = _riesgo_de(venta, p.symbol, p.volume, p.price_open, p.sl)
         n = _dig(p.symbol)
-        abierta = dt.datetime.fromtimestamp(p.time)
+        abierta = _local(p.time)
         filas.append({
             "simbolo": p.symbol,
             "lado": "VENTA" if venta else "COMPRA",
@@ -109,6 +150,10 @@ def _abiertas():
             "stop": round(p.sl, n),
             "objetivo": round(p.tp, n),
             "flotante": round(p.profit, 2),
+            # Lo YA cobrado aqui dentro. Ese dinero esta en la cuenta aunque la
+            # operacion siga viva, y si no se enseñara desapareceria de la app
+            # al dejar de contarse entre las cerradas.
+            "parcial_cobrado": _parcial_cobrado(p.ticket),
             "abierta_desde": abierta.strftime("%d/%m %H:%M"),
             "abierta_dia": abierta.strftime("%Y-%m-%d"),
             # Un stop ya movido a la entrada no arriesga nada. Se marca aparte
@@ -125,7 +170,7 @@ def _pendientes():
         if o.magic != MAGICO:
             continue
         n = _dig(o.symbol)
-        puesta = dt.datetime.fromtimestamp(o.time_setup)
+        puesta = _local(o.time_setup)
         filas.append({
             "simbolo": o.symbol,
             "tipo": TIPOS_ORDEN.get(o.type, str(o.type)),
@@ -177,12 +222,18 @@ def _cerradas():
             p["salidas"] += 1
             p["puntos"].append((d.time, d.price))
 
+    # Una posicion con parcial YA tiene una salida, asi que "tiene salidas" no
+    # sirve para saber si esta cerrada: hay que preguntarselo al terminal. Sin
+    # esto una operacion a medias sale en las DOS pestañas, y su parcial se
+    # cuenta como si fuera el resultado final de la operacion.
+    vivas = {x.ticket for x in (mt5.positions_get() or []) if x.magic == MAGICO}
+
     filas = []
     for pid, p in por_posicion.items():
-        if p["abierta"] is None or p["cerrada"] is None:
+        if p["abierta"] is None or p["cerrada"] is None or pid in vivas:
             continue          # todavía viva: sale en las abiertas
-        a = dt.datetime.fromtimestamp(p["abierta"])
-        c = dt.datetime.fromtimestamp(p["cerrada"])
+        a = _local(p["abierta"])
+        c = _local(p["cerrada"])
         sl, tp = niveles.get(pid, (0.0, 0.0))
         n = _dig(p["simbolo"])
         filas.append({
@@ -224,8 +275,8 @@ def _svg(simbolo, entrada, stop, objetivo, t_in, salidas, digitos):
     t_fin = max(t for t, _ in salidas)
     velas = mt5.copy_rates_range(
         simbolo, mt5.TIMEFRAME_M15,
-        dt.datetime.fromtimestamp(t_in - VELAS_ANTES * 900),
-        dt.datetime.fromtimestamp(t_fin + VELAS_DESPUES * 900))
+        _servidor(t_in - VELAS_ANTES * 900),
+        _servidor(t_fin + VELAS_DESPUES * 900))
     if velas is None or len(velas) < 5:
         return ""
 
@@ -282,7 +333,7 @@ def _svg(simbolo, entrada, stop, objetivo, t_in, salidas, digitos):
     P.append(f'<circle cx="{x1:.1f}" cy="{y(entrada):.1f}" r="3.8" class="marcaent"/>')
 
     for k in (0, n // 2, n - 1):
-        ts = dt.datetime.fromtimestamp(int(velas["time"][k]))
+        ts = _local(int(velas["time"][k]))
         anc = "start" if k == 0 else ("end" if k == n - 1 else "middle")
         P.append(f'<text x="{x(k):.1f}" y="{ALTO - 6}" class="eje" '
                  f'text-anchor="{anc}">{ts.strftime("%d/%m %H:%M")}</text>')
@@ -568,6 +619,7 @@ mazo("abiertas", D.abiertas.map(p => `
     <div class="linea"><span>Entrada</span><span class="mono">${p.entrada}</span></div>
     <div class="linea"><span>Stop</span><span class="mono">${p.stop || "—"}</span></div>
     <div class="linea"><span>Objetivo</span><span class="mono">${p.objetivo || "—"}</span></div>
+    ${p.parcial_cobrado ? `<div class="linea"><span>Parcial ya cobrado</span><span class="r ${signo(p.parcial_cobrado)}">${eur(p.parcial_cobrado)}</span></div>` : ""}
     <div class="linea"><span>${p.lotes} lotes · desde</span><span class="mono">${esc(p.abierta_desde)}</span></div>
   </article>`),
   "Ninguna posición abierta ahora mismo.");
