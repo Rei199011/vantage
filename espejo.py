@@ -216,6 +216,7 @@ def _cerradas():
             p["lado"] = "VENTA" if d.type == mt5.DEAL_TYPE_SELL else "COMPRA"
             p["abierta"] = d.time
             p["entrada"] = d.price
+            p["lotes"] = d.volume
         else:
             p["beneficio"] += d.profit + d.swap + d.commission
             p["cerrada"] = d.time
@@ -235,6 +236,8 @@ def _cerradas():
         a = _local(p["abierta"])
         c = _local(p["cerrada"])
         sl, tp = niveles.get(pid, (0.0, 0.0))
+        riesgo_real = _riesgo_de(p["lado"] == "VENTA", p["simbolo"],
+                                 p.get("lotes", 0.0), p["entrada"], sl) or 0.0
         n = _dig(p["simbolo"])
         filas.append({
             "grafico": _svg(p["simbolo"], p["entrada"], sl, tp,
@@ -244,7 +247,17 @@ def _cerradas():
             "simbolo": p["simbolo"],
             "lado": p["lado"],
             "beneficio": round(p["beneficio"], 2),
-            "r": round(p["beneficio"] / RIESGO_POR_OPERACION, 2),
+            # La R sale del riesgo REAL de esta operación, no de un 500 fijo.
+            #
+            # Con el techo por margen el lote se recorta cuando no cabe, así
+            # que una operación puede arriesgar 97 EUR en vez de 500. Dividir
+            # siempre entre 500 enseñaría esa operación como +0,19 R cuando
+            # ganó su 1R entero, y aplastaría todas las métricas hacia cero.
+            #
+            # Si el terminal no da el riesgo -sin stop, o ya movido a la
+            # entrada- se recurre al parámetro, que es lo que había antes.
+            "r": round(p["beneficio"] / (riesgo_real or RIESGO_POR_OPERACION), 2),
+            "riesgo": round(riesgo_real, 2) if riesgo_real else None,
             "entrada": round(p["entrada"], _dig(p["simbolo"])),
             "abierta": a.strftime("%d/%m %H:%M"),
             "cerrada": c.strftime("%d/%m %H:%M"),
