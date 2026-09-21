@@ -273,6 +273,108 @@ def _acumulado(cerradas, magico):
             f"({100.0 * g / n:.0f}%) · {tot:+.2f} R")
 
 
+# ------------------------------------------------------------------ resumen
+
+
+def _dia_de_sesion():
+    """
+    Qué día hay que resumir, en hora del servidor.
+
+    La sesión del robot cierra a las 21:00 UTC, que en el servidor (UTC+3) son
+    las 00:00 del día SIGUIENTE. Si el resumen se lanza justo después y mira
+    "hoy", mira un día recién nacido y sale vacío. Por eso, de madrugada, el
+    día que interesa es el anterior.
+    """
+    t = mt5.symbol_info_tick("EURUSD")
+    ahora = (dt.datetime.fromtimestamp(t.time, dt.timezone.utc).replace(tzinfo=None)
+             if t and t.time else dt.datetime.utcnow())
+    dia = ahora.date()
+    if ahora.hour < 6:
+        dia = dia - dt.timedelta(days=1)
+    a = dt.datetime.combine(dia, dt.time.min)
+    return a, a + dt.timedelta(days=1)
+
+
+ESTADOS = {1: "puesta", 2: "cancelada", 3: "parcial",
+           4: "se llenó", 5: "RECHAZADA", 6: "caducada"}
+
+
+def resumen_diario():
+    """El parte del día: lo que se colocó, lo que cerró y cómo va la cuenta."""
+    if not mt5.initialize():
+        return None, f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"
+    try:
+        a, b = _dia_de_sesion()
+        ats = a.replace(tzinfo=dt.timezone.utc).timestamp()
+        bts = b.replace(tzinfo=dt.timezone.utc).timestamp()
+
+        ords = [o for o in (mt5.history_orders_get(
+                    a - dt.timedelta(days=2), b + dt.timedelta(days=1)) or [])
+                if o.magic in ROBOTS and ats <= o.time_setup < bts]
+        abiertas = _posiciones()
+        cerradas = _cerradas()
+        pendientes = [o for o in (mt5.orders_get() or []) if o.magic in ROBOTS]
+        hoy = {k: p for k, p in cerradas.items() if ats <= p["cerrada"] < bts}
+    finally:
+        mt5.shutdown()
+
+    L = [f"\U0001F4CA <b>Resumen del {a:%d/%m}</b>", ""]
+
+    L.append(f"<b>Órdenes colocadas: {len(ords)}</b>")
+    for o in sorted(ords, key=lambda x: x.time_setup):
+        etiqueta = ROBOTS.get(o.magic, str(o.magic))
+        L.append(f"  {o.symbol} {o.volume_initial} · {etiqueta} · "
+                 f"{ESTADOS.get(o.state, o.state)}")
+    if not ords:
+        L.append("  <i>ninguna</i>")
+    L.append("")
+
+    L.append(f"<b>Cerradas hoy: {len(hoy)}</b>")
+    suma = 0.0
+    for p in sorted(hoy.values(), key=lambda x: x["cerrada"]):
+        r = p.get("r")
+        marca = "✅" if (r or 0) > 0.05 else ("❌" if (r or 0) < -0.05 else "⚪")
+        suma += r or 0.0
+        L.append(f"  {marca} {p['simbolo']} "
+                 f"{'?' if r is None else f'{r:+.2f}'} R "
+                 f"({p['beneficio']:+,.0f} €)")
+    if hoy:
+        L.append(f"  <b>del día: {suma:+.2f} R</b>")
+    else:
+        L.append("  <i>ninguna</i>")
+    L.append("")
+
+    L.append(f"<b>Abiertas ahora: {len(abiertas)}</b>")
+    for p in abiertas.values():
+        L.append(f"  {p['simbolo']} {p['lado']} {p['lotes']}")
+    if not abiertas:
+        L.append("  <i>ninguna</i>")
+    L.append("")
+
+    L.append(f"<b>Esperando: {len(pendientes)}</b>")
+    if pendientes:
+        L.append("  " + ", ".join(sorted({o.symbol for o in pendientes})))
+    else:
+        L.append("  <i>ninguna</i>")
+    L.append("")
+
+    L.append("<b>Acumulado de la cuenta</b>")
+    for magico, etiqueta in ROBOTS.items():
+        mias = [p for p in cerradas.values()
+                if p["magico"] == magico and p.get("r") is not None]
+        if not mias:
+            L.append(f"  {etiqueta}: <i>sin operaciones</i>")
+            continue
+        n = len(mias)
+        g = sum(1 for p in mias if p["r"] > 0)
+        L.append(f"  {etiqueta}: {n} ops · {g} ganadas "
+                 f"(<b>{100.0 * g / n:.0f}%</b>) · "
+                 f"{sum(p['r'] for p in mias):+.2f} R")
+    L.append("")
+    L.append(f"<i>últimos {DIAS_HISTORIAL} días</i>")
+    return "\n".join(L), None
+
+
 # ------------------------------------------------------------------ vuelta
 
 
@@ -331,6 +433,10 @@ def main():
                     help="comprueba las credenciales y manda un mensaje de prueba")
     ap.add_argument("--chat", action="store_true",
                     help="averigua el chat id: escribele algo al bot primero")
+    ap.add_argument("--resumen", action="store_true",
+                    help="manda el parte del dia: colocadas, cerradas, abiertas y acierto")
+    ap.add_argument("--ver", action="store_true",
+                    help="con --resumen, lo enseña por pantalla en vez de mandarlo")
     ap.add_argument("--una-vez", action="store_true")
     ap.add_argument("--cada", type=int, default=0, metavar="SEGUNDOS")
     ap.add_argument("--callar", action="store_true",
@@ -368,6 +474,23 @@ def main():
             print(f"  TELEGRAM_CHAT_ID={cid}    ({nombre})")
         print()
         return 0
+
+    if args.resumen:
+        texto, err = resumen_diario()
+        if err:
+            print(f"\n  {err}\n")
+            return 1
+        if args.ver:
+            limpio = texto
+            for etiqueta in ("<b>", "</b>", "<i>", "</i>", "<code>", "</code>"):
+                limpio = limpio.replace(etiqueta, "")
+            print()
+            print("\n".join("  " + l for l in limpio.split("\n")))
+            print()
+            return 0
+        e = enviar(texto)
+        print("  " + ("resumen enviado" if e is None else f"NO se pudo enviar: {e}"))
+        return 0 if e is None else 1
 
     if args.probar:
         tok, chat = _credenciales()
