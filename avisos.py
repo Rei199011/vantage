@@ -77,9 +77,24 @@ def _credenciales():
     return tok, chat
 
 
+def _destinos(chat):
+    """
+    TELEGRAM_CHAT_ID admite varios separados por comas.
+
+    Asi se puede mandar a mas de una persona sin montar un canal. Para tres o
+    cuatro va de sobra; a partir de ahi conviene un canal de verdad, donde se
+    invita y se echa a gente sin tocar la configuracion.
+    """
+    return [c.strip() for c in str(chat).split(",") if c.strip()]
+
+
 def enviar(texto):
     """
-    Manda el mensaje. Devuelve None si fue bien, o el motivo del fallo.
+    Manda el mensaje a todos los destinos. Devuelve None si fue bien, o el
+    motivo del primer fallo.
+
+    Si un destino falla, se sigue con los demas: que Alex tenga el bot
+    bloqueado no puede dejar a Reinaldo sin avisos.
 
     Se usa urllib y no `requests` a propósito: es de la biblioteca estándar, y
     así los avisos no dependen de instalar nada. Un aviso que no sale porque
@@ -89,19 +104,23 @@ def enviar(texto):
     if not tok or not chat:
         return ("faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID; "
                 "ponlos en .env o en el entorno")
-    datos = urllib.parse.urlencode({
-        "chat_id": chat,
-        "text": texto,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": "true",
-    }).encode()
     url = "https://api.telegram.org/bot" + tok + "/sendMessage"
-    try:
-        with urllib.request.urlopen(url, data=datos, timeout=20) as r:
-            j = json.loads(r.read().decode())
-        return None if j.get("ok") else str(j.get("description", j))[:160]
-    except Exception as e:                                   # noqa: BLE001
-        return f"{type(e).__name__}: {e}"[:160]
+    fallos = []
+    for destino in _destinos(chat):
+        datos = urllib.parse.urlencode({
+            "chat_id": destino,
+            "text": texto,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": "true",
+        }).encode()
+        try:
+            with urllib.request.urlopen(url, data=datos, timeout=20) as r:
+                j = json.loads(r.read().decode())
+            if not j.get("ok"):
+                fallos.append(f"{destino}: {str(j.get('description', j))[:80]}")
+        except Exception as e:                               # noqa: BLE001
+            fallos.append(f"{destino}: {type(e).__name__}: {e}"[:100])
+    return fallos[0] if fallos else None
 
 
 # ------------------------------------------------------------------ estado
@@ -459,12 +478,20 @@ def main():
         except Exception as ex:                              # noqa: BLE001
             print(f"\n  no se pudo preguntar: {ex}\n")
             return 1
+        # Se miran TODOS los tipos de aviso, no solo los mensajes: cuando se
+        # mete el bot en un canal o un grupo no llega ningun mensaje, llega un
+        # `my_chat_member`. Sin eso, un canal recien creado era invisible.
         chats = {}
         for u in j.get("result", []):
-            m = u.get("message") or u.get("channel_post") or {}
-            c = m.get("chat") or {}
-            if c.get("id"):
-                chats[c["id"]] = c.get("title") or c.get("first_name") or c.get("type")
+            for clave in ("message", "channel_post", "edited_channel_post",
+                          "my_chat_member", "chat_member"):
+                c = (u.get(clave) or {}).get("chat") or {}
+                if c.get("id"):
+                    tipo = {"private": "privado", "channel": "CANAL",
+                            "group": "grupo", "supergroup": "grupo"
+                            }.get(c.get("type"), c.get("type"))
+                    nombre = c.get("title") or c.get("first_name") or ""
+                    chats[c["id"]] = f"{tipo}{' · ' + nombre if nombre else ''}"
         print()
         if not chats:
             print("  Ningun mensaje todavia. Escribele algo al bot en Telegram")
@@ -496,7 +523,7 @@ def main():
         tok, chat = _credenciales()
         print()
         print(f"  token: {'puesto (' + tok[:6] + '...)' if tok else 'FALTA'}")
-        print(f"  chat:  {chat if chat else 'FALTA'}")
+        print(f"  chats: {', '.join(_destinos(chat)) if chat else 'FALTA'}")
         if not tok or not chat:
             print()
             print("  Pon estas dos lineas en vantage/.env:")
