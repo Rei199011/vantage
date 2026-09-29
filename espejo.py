@@ -92,9 +92,40 @@ def _parcial_cobrado(pid):
                      for d in ds if d.entry != mt5.DEAL_ENTRY_IN), 2)
 
 
+def _terminal():
+    """
+    A QUE terminal hay que conectarse, cuando hay mas de uno abierto.
+
+    Con el MetaTrader de MetaQuotes y el de FTMO a la vez, una initialize() a
+    secas coge el que le parece. El 29/09 el espejo se cambio de cuenta EL
+    SOLO: la app paso a enseñar los 50.000 de FTMO y todo el historial de la
+    demo desaparecio de la vista sin que nadie tocara nada.
+
+    Se fija en .env, no en el codigo, para poder cambiar de cuenta sin tocar
+    nada mas:
+
+        MT5_TERMINAL=C:/Program Files/MetaTrader 5/terminal64.exe
+
+    Sin esa linea se comporta como antes: el que encuentre.
+    """
+    ruta = os.getenv("MT5_TERMINAL")
+    if not ruta and os.path.exists(".env"):
+        for linea in io.open(".env", encoding="utf-8", errors="ignore"):
+            if linea.strip().startswith("MT5_TERMINAL="):
+                ruta = linea.split("=", 1)[1].strip().strip('"').strip("'")
+                break
+    return ruta or None
+
+
+def _abrir():
+    """initialize() apuntando al terminal que toca."""
+    ruta = _terminal()
+    return mt5.initialize(ruta) if ruta else mt5.initialize()
+
+
 def leer_terminal():
     """Todo lo que hay que saber del terminal, en un diccionario."""
-    if not mt5.initialize():
+    if not _abrir():
         return {"error": f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"}
 
     try:

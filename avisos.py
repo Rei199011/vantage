@@ -162,6 +162,37 @@ def _riesgo(venta, simbolo, lotes, entrada, stop):
     return abs(p) if p is not None else None
 
 
+def _terminal():
+    """
+    A QUE terminal hay que conectarse, cuando hay mas de uno abierto.
+
+    Con el MetaTrader de MetaQuotes y el de FTMO a la vez, una initialize() a
+    secas coge el que le parece. El 29/09 el espejo se cambio de cuenta EL
+    SOLO: la app paso a enseñar los 50.000 de FTMO y todo el historial de la
+    demo desaparecio de la vista sin que nadie tocara nada.
+
+    Se fija en .env, no en el codigo, para poder cambiar de cuenta sin tocar
+    nada mas:
+
+        MT5_TERMINAL=C:/Program Files/MetaTrader 5/terminal64.exe
+
+    Sin esa linea se comporta como antes: el que encuentre.
+    """
+    ruta = os.getenv("MT5_TERMINAL")
+    if not ruta and os.path.exists(".env"):
+        for linea in io.open(".env", encoding="utf-8", errors="ignore"):
+            if linea.strip().startswith("MT5_TERMINAL="):
+                ruta = linea.split("=", 1)[1].strip().strip('"').strip("'")
+                break
+    return ruta or None
+
+
+def _abrir():
+    """initialize() apuntando al terminal que toca."""
+    ruta = _terminal()
+    return mt5.initialize(ruta) if ruta else mt5.initialize()
+
+
 def _posiciones():
     """Lo que está abierto ahora, de cualquiera de los dos robots."""
     fuera = {}
@@ -320,7 +351,7 @@ ESTADOS = {1: "puesta", 2: "cancelada", 3: "parcial",
 
 def resumen_diario():
     """El parte del día: lo que se colocó, lo que cerró y cómo va la cuenta."""
-    if not mt5.initialize():
+    if not _abrir():
         return None, f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"
     try:
         a, b = _dia_de_sesion()
@@ -399,7 +430,7 @@ def resumen_diario():
 
 def una_vuelta(callar=False):
     """Mira, avisa de lo nuevo y devuelve un resumen de lo hecho."""
-    if not mt5.initialize():
+    if not _abrir():
         return f"no se pudo conectar con MetaTrader 5: {mt5.last_error()}"
     try:
         abiertas = _posiciones()
