@@ -678,7 +678,41 @@ for (const o of cer) {
 }
 const listaPares = Object.entries(porPar).sort((a, b) => b[1].e - a[1].e);
 
-sello.innerHTML = `${D.cuenta.login} · ${D.generado}`;
+// LA HORA, EN RELATIVO. En el movil lo primero que uno quiere saber no es a
+// que hora se genero, sino si lo que esta mirando es de ahora o de hace dos
+// horas porque el ordenador se apago.
+function haceCuanto(gen) {
+  const [f, h] = gen.split(" ");
+  const [d, m, a] = f.split("/");
+  const [H, M] = h.split(":");
+  const t = new Date(+a, m - 1, +d, +H, +M);
+  const min = Math.round((Date.now() - t) / 60000);
+  if (min < 1) return "ahora mismo";
+  if (min < 60) return `hace ${min} min`;
+  const hrs = Math.floor(min / 60);
+  return hrs < 24 ? `hace ${hrs} h ${min % 60} min` : `hace ${Math.floor(hrs / 24)} d`;
+}
+function pintaSello() {
+  const viejo = (Date.now() - new Date(D.generado.split(" ")[0]
+    .split("/").reverse().join("-") + "T" + D.generado.split(" ")[1])) > 25 * 60000;
+  sello.innerHTML = `${D.cuenta.login} · <span${viejo ?
+    ' style="color:var(--aviso)"' : ""}>${haceCuanto(D.generado)}</span>`;
+}
+pintaSello();
+setInterval(pintaSello, 30000);
+
+// SE RECARGA SOLA cada 10 minutos, que es lo que tarda el espejo en volver a
+// publicar. Solo cuando la pestana esta A LA VISTA: recargar una pestana de
+// fondo gasta datos del movil y no la ve nadie. Al volver a ella se comprueba
+// si toca y se recarga en el momento.
+const CADA = 10 * 60 * 1000;
+let ultima = Date.now();
+function quizaRecargar() {
+  if (document.visibilityState !== "visible") return;
+  if (Date.now() - ultima >= CADA) location.reload();
+}
+setInterval(quizaRecargar, 20000);
+document.addEventListener("visibilitychange", quizaRecargar);
 if (!D.conectado) {
   pulso.innerHTML = "<i></i><span>sin conexion</span>";
   pulso.style.color = "var(--baja)";

@@ -20,6 +20,7 @@ maquetas/
 *.plantilla-vieja
 *.riesgo500
 *.sin-print-params
+*.cada15
 
 # Estado de los avisos: cambia en cada vuelta y no es codigo
 avisos_estado.json

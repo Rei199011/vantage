@@ -9,5 +9,5 @@ echo. >> espejo.log
 echo ===== arranque %DATE% %TIME% ===== >> espejo.log
 REM -u: sin almacenar en memoria. Sin esto Python guarda la salida y el
 REM registro llega con horas de retraso, justo cuando hace falta mirarlo.
-python -u espejo.py --cada 15 --publicar >> espejo.log 2>&1
+python -u espejo.py --cada 10 --publicar >> espejo.log 2>&1
 echo ===== se detuvo %DATE% %TIME% ===== >> espejo.log
