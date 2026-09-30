@@ -31,13 +31,34 @@ except ImportError:
     print("Falta el paquete MetaTrader5:  pip install MetaTrader5")
     sys.exit(1)
 
-# El mágico del EA. Si se cambia en el robot, hay que cambiarlo aquí.
+# Los mágicos de los EA. Si se cambia en un robot, hay que cambiarlo aquí.
+#
+# SON TRES, desde el 30/09/2026:
+#
+#   20260822  OB 1_1      EURJPY, con EMA
+#   20260930  OB_sin_EMA  EURUSD, GBPJPY, USDCAD y XAUUSD, sin EMA
+#   20260921  OB_5min     el oro de antes, en M5 y a 1:2. Ya no opera, pero sus
+#                         operaciones cerradas son parte del historial y tienen
+#                         que seguir contando.
+#
+# Mientras esto fue un escalar, los cuatro pares del segundo robot NO salían en
+# el panel, y nadie lo habría notado: la pestaña enseñaba menos operaciones de
+# las que había. Al ampliarlo se me olvidó el 20260921 y se perdieron las dos
+# del oro; el aviso vino de Reinaldo, no del programa.
+#
+# LO QUE NO ENTRA, Y ES A PROPÓSITO. En esta misma cuenta demo corre Ariel con
+# el mágico 990101 y tiene 58 operaciones de oro suyas. El 0 son los cierres a
+# mano. Ni uno ni otro son de este robot y no deben aparecer aquí: ese filtrado
+# es justo para lo que existe este fichero.
+MAGICOS = {20260822, 20260921, 20260930}
+
+# Se conserva para lo que aún espera un número suelto.
 MAGICO = 20260822
 
 # Lo que el robot arriesga por operación, para poder expresar los resultados
 # en R. Es un parámetro suyo, no algo que se pueda deducir del historial de
 # una operación ya cerrada.
-RIESGO_POR_OPERACION = 500.0
+RIESGO_POR_OPERACION = 150.0
 
 DIAS_HISTORIAL = 180
 SALIDA = "dashboard.html"
@@ -136,7 +157,7 @@ def leer_terminal():
         return {
             "generado": dt.datetime.now().strftime("%d/%m/%Y %H:%M"),
             "conectado": bool(ti and ti.connected),
-            "magico": MAGICO,
+            "magico": sorted(MAGICOS),
             "riesgo": RIESGO_POR_OPERACION,
             "cuenta": {
                 "login": ai.login if ai else None,
@@ -167,7 +188,7 @@ def _dig(simbolo):
 def _abiertas():
     filas = []
     for p in (mt5.positions_get() or []):
-        if p.magic != MAGICO:
+        if p.magic not in MAGICOS:
             continue
         venta = p.type == mt5.POSITION_TYPE_SELL
         riesgo = _riesgo_de(venta, p.symbol, p.volume, p.price_open, p.sl)
@@ -198,7 +219,7 @@ def _abiertas():
 def _pendientes():
     filas = []
     for o in (mt5.orders_get() or []):
-        if o.magic != MAGICO:
+        if o.magic not in MAGICOS:
             continue
         n = _dig(o.symbol)
         puesta = _local(o.time_setup)
@@ -231,12 +252,12 @@ def _cerradas():
     # abrió la posición. Sin ellos no se puede dibujar la geometría.
     niveles = {}
     for o in (mt5.history_orders_get(desde, hasta) or []):
-        if o.magic == MAGICO and o.position_id and (o.sl or o.tp):
+        if o.magic in MAGICOS and o.position_id and (o.sl or o.tp):
             niveles.setdefault(o.position_id, (o.sl, o.tp))
 
     por_posicion = {}
     for d in deals:
-        if d.magic != MAGICO:
+        if d.magic not in MAGICOS:
             continue
         p = por_posicion.setdefault(d.position_id, {
             "simbolo": d.symbol, "lado": "", "beneficio": 0.0,
@@ -258,7 +279,8 @@ def _cerradas():
     # sirve para saber si esta cerrada: hay que preguntarselo al terminal. Sin
     # esto una operacion a medias sale en las DOS pestañas, y su parcial se
     # cuenta como si fuera el resultado final de la operacion.
-    vivas = {x.ticket for x in (mt5.positions_get() or []) if x.magic == MAGICO}
+    vivas = {x.ticket for x in (mt5.positions_get() or [])
+             if x.magic in MAGICOS}
 
     filas = []
     for pid, p in por_posicion.items():
@@ -405,394 +427,410 @@ def render(d):
 
 
 PLANTILLA = r"""<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Vantage EA</title>
-<!-- Sin esto la pagina se abre como una web normal, no como app instalada. -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Vantage EA">
-<meta name="theme-color" content="#F4E8DA">
+<meta name="theme-color" content="#0B1017">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
-  :root{
-    --paper:#F4E8DA; --ink:#17120D; --rule:#C4AE95; --muted:#7C6B58;
-    --bull:#1B5E43; --bear:#9E2B21; --mark:#1F3A5F; --tarjeta:#FBF4EA;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#14110D; --ink:#EDE3D6; --rule:#4A3F33; --muted:#9C8A76;
-      --bull:#5FBE93; --bear:#E0705F; --mark:#7FA8D4; --tarjeta:#1D1913;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#14110D; --ink:#EDE3D6; --rule:#4A3F33; --muted:#9C8A76;
-    --bull:#5FBE93; --bear:#E0705F; --mark:#7FA8D4; --tarjeta:#1D1913;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
-       font-family:'Newsreader',Georgia,serif;line-height:1.5}
-  .hoja{max-width:1140px;margin:0 auto;padding:2rem 1.1rem 4rem}
-  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;
-        font-variant-numeric:tabular-nums}
+/* Sala de control, primero en vertical. Una pizarra azulada, una tinta de
+   acento y las cifras en monoespaciada para que las columnas cuadren. */
+:root{
+  --fondo:#0B1017; --panel:#121A24; --hueco:#0E151E; --linea:#1F2B39;
+  --tinta:#E6EDF5; --media:#A3B2C2; --apagada:#7D8FA3;
+  --acento:#38BDF8; --sube:#34D399; --baja:#F87171; --aviso:#FBBF24;
+  --texto:'Archivo',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--fondo);color:var(--tinta);font-family:var(--texto);
+     font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+     -webkit-text-size-adjust:100%}
+.envoltorio{max-width:1180px;margin:0 auto;padding:0 14px 32px}
+@media(min-width:760px){.envoltorio{padding:0 20px 40px}}
 
-  header{border-bottom:3px double var(--rule);padding-bottom:1rem}
-  h1{font-family:'Bodoni Moda','Didot',serif;font-weight:700;
-     font-size:clamp(1.9rem,5vw,3rem);margin:0;letter-spacing:-0.01em;
-     text-wrap:balance}
-  .cintillo{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;margin-top:.9rem;
-            font-size:.82rem;color:var(--muted)}
-  .cintillo b{color:var(--ink);font-weight:600}
+/* ---- cabecera pegada arriba, con el hueco de la barra del movil ---- */
+.alto{position:sticky;top:0;z-index:20;background:var(--fondo);
+      padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:10px;
+      border-bottom:1px solid var(--linea);
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.marca{font-weight:700;font-size:1rem;letter-spacing:-.01em;white-space:nowrap}
+.marca span{color:var(--acento)}
+.pulso{display:inline-flex;align-items:center;gap:6px;font-size:.66rem;
+       letter-spacing:.08em;text-transform:uppercase;color:var(--sube)}
+.pulso i{width:7px;height:7px;border-radius:50%;background:currentColor;
+         box-shadow:0 0 0 3px color-mix(in srgb,currentColor 20%,transparent)}
+.sello{margin-left:auto;font-family:var(--mono);font-size:.68rem;
+       color:var(--apagada);text-align:right;min-width:0}
 
-  /* --- pestanas --- */
-  .pestanas{display:flex;margin-top:1.6rem;border-bottom:1px solid var(--rule)}
-  .pestanas button{font-family:'Newsreader',serif;font-size:.95rem;
-    background:transparent;color:var(--muted);border:0;cursor:pointer;
-    padding:.65rem 1.15rem;border-bottom:2px solid transparent;
-    margin-bottom:-1px;display:flex;align-items:baseline;gap:.5rem}
-  .pestanas button .n{font-family:'IBM Plex Mono',monospace;font-size:.78rem;
-    background:var(--tarjeta);border:1px solid var(--rule);padding:0 .35rem}
-  .pestanas button.on{color:var(--ink);border-bottom-color:var(--mark);
-    font-weight:600}
-  .pestanas button:hover{color:var(--ink)}
-  .pestanas button:focus-visible{outline:2px solid var(--mark);outline-offset:-2px}
-  .hoja-pestana{display:none}
-  .hoja-pestana.on{display:block}
+/* ---- las cifras de cabecera ---- */
+.cifras{display:grid;gap:1px;background:var(--linea);
+        border:1px solid var(--linea);margin:14px 0;
+        grid-template-columns:repeat(2,1fr)}
+@media(min-width:520px){.cifras{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.cifras{grid-template-columns:repeat(6,1fr)}}
+.celda{background:var(--panel);padding:11px 13px;min-width:0}
+.celda small{display:block;font-size:.64rem;letter-spacing:.09em;
+             text-transform:uppercase;color:var(--apagada);margin-bottom:3px}
+.celda b{display:block;font-family:var(--mono);font-size:1.3rem;font-weight:500;
+         letter-spacing:-.02em;font-variant-numeric:tabular-nums;
+         line-height:1.15;overflow-wrap:anywhere}
+.celda em{font-style:normal;display:block;margin-top:2px;font-family:var(--mono);
+          font-size:.68rem;color:var(--apagada)}
+@media(min-width:900px){.celda b{font-size:1.45rem}}
+.sube{color:var(--sube)} .baja{color:var(--baja)} .av{color:var(--aviso)}
 
-  h2{font-size:.76rem;text-transform:uppercase;letter-spacing:.14em;
-     color:var(--muted);font-weight:600;margin:1.7rem 0 0;
-     border-bottom:1px solid var(--rule);padding-bottom:.35rem;
-     display:flex;gap:.7rem;align-items:baseline}
-  h2 .cuenta{margin-left:auto;letter-spacing:0}
+/* ---- los mandos: chips que ruedan y el interruptor ---- */
+.mandos{position:sticky;top:calc(45px + env(safe-area-inset-top,0px));z-index:15;
+        background:var(--fondo);padding:9px 0 11px;
+        display:flex;gap:9px;align-items:center}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+       -webkit-overflow-scrolling:touch;padding:2px 0;min-width:0;flex:1}
+.chips::-webkit-scrollbar{display:none}
+button{font:inherit;cursor:pointer;color:var(--media);background:var(--panel);
+       border:1px solid var(--linea);padding:8px 14px;font-size:.78rem;
+       white-space:nowrap;transition:background .14s,color .14s,border-color .14s;
+       min-height:38px;border-radius:2px}
+button:hover{color:var(--tinta);border-color:var(--apagada)}
+button[aria-pressed="true"]{background:var(--acento);border-color:var(--acento);
+       color:#06131C;font-weight:600}
+button:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+.palanca{display:flex;flex:0 0 auto;border:1px solid var(--linea)}
+.palanca button{border:none;border-radius:0;padding:8px 13px}
+.palanca button+button{border-left:1px solid var(--linea)}
 
-  /* --- cifras --- */
-  .cifras{display:grid;gap:.7rem;margin-top:1rem;
-          grid-template-columns:repeat(auto-fit,minmax(138px,1fr))}
-  .cifra{background:var(--tarjeta);border:1px solid var(--rule);padding:.8rem .9rem}
-  .cifra .n{display:block;font-family:'Bodoni Moda',serif;font-size:1.7rem;
-            font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
-  .cifra .e{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;
-            color:var(--muted)}
+/* ---- paneles ---- */
+.caja{background:var(--panel);border:1px solid var(--linea);margin-bottom:12px;
+      min-width:0}
+.caja>header{display:flex;align-items:center;gap:9px;padding:10px 13px;
+             border-bottom:1px solid var(--linea)}
+.caja>header h2{margin:0;font-size:.7rem;letter-spacing:.1em;
+                text-transform:uppercase;color:var(--apagada);font-weight:600}
+.caja>header .ind{margin-left:auto;font-family:var(--mono);font-size:.8rem;
+                  font-variant-numeric:tabular-nums}
+.cuerpo{padding:12px 13px}
+.par2{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:900px){.par2{grid-template-columns:1fr 292px}}
 
-  /* --- filtros --- */
-  .filtros{background:var(--tarjeta);border:1px solid var(--rule);
-           padding:.9rem 1rem;margin-top:1.4rem;display:flex;flex-wrap:wrap;
-           gap:.8rem 1.4rem;align-items:flex-end}
-  .campo{display:flex;flex-direction:column;gap:.25rem}
-  .campo label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;
-               color:var(--muted);font-weight:600}
-  .filtros input[type=date],.filtros select{
-    font-family:'IBM Plex Mono',monospace;font-size:.84rem;
-    background:var(--paper);color:var(--ink);
-    border:1px solid var(--rule);border-radius:0;padding:.35rem .5rem}
-  .filtros input:focus-visible,.filtros select:focus-visible,
-  .filtros button:focus-visible{
-    outline:2px solid var(--mark);outline-offset:1px}
-  .filtros>button{font-family:'Newsreader',serif;font-size:.85rem;
-    background:transparent;color:var(--mark);border:1px solid var(--mark);
-    padding:.4rem .9rem;cursor:pointer}
-  .filtros>button:hover{background:var(--mark);color:var(--paper)}
-  .conmutador{display:flex;border:1px solid var(--rule)}
-  .conmutador button{border:0;border-right:1px solid var(--rule);cursor:pointer;
-    background:transparent;color:var(--muted);padding:.4rem .8rem;
-    font-size:.8rem;font-family:'Newsreader',serif}
-  .conmutador button:last-child{border-right:0}
-  .conmutador button.on{background:var(--mark);color:var(--paper)}
+/* ---- la curva ---- */
+.curva{width:100%;height:auto;display:block}
+.rej{stroke:var(--linea);stroke-width:1}
+.relleno{fill:color-mix(in srgb,var(--acento) 13%,transparent);stroke:none}
+.trazo{fill:none;stroke:var(--acento);stroke-width:2;stroke-linejoin:round;
+       stroke-linecap:round}
+.punta{fill:var(--acento);stroke:var(--panel);stroke-width:2}
+.ejeY,.ejeX{font-family:var(--mono);font-size:10px;fill:var(--apagada)}
+.ejeY{text-anchor:end}
 
-  /* --- tarjetas --- */
-  .mazo{display:grid;gap:.8rem;margin-top:1rem;
-        grid-template-columns:repeat(auto-fill,minmax(258px,1fr))}
-  #listaCerradas .mazo{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
-  .t{background:var(--tarjeta);border:1px solid var(--rule);
-     border-left:4px solid var(--rule);padding:.85rem .95rem;
-     display:flex;flex-direction:column;gap:.5rem}
-  .t.gana{border-left-color:var(--bull)}
-  .t.pierde{border-left-color:var(--bear)}
-  .t .alto{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap}
-  .t .sim{font-family:'Bodoni Moda',serif;font-size:1.15rem;font-weight:700}
-  .t .r{margin-left:auto;font-family:'IBM Plex Mono',monospace;
-        font-size:1.2rem;font-weight:500;font-variant-numeric:tabular-nums}
-  .t .dinero{font-family:'IBM Plex Mono',monospace;font-size:.9rem}
-  .t .linea{display:flex;justify-content:space-between;gap:.6rem;
-            font-size:.78rem;color:var(--muted);
-            border-top:1px solid color-mix(in srgb,var(--rule) 50%,transparent);
-            padding-top:.4rem}
-  .t .linea .mono{color:var(--ink)}
-  .sube{color:var(--bull)} .baja{color:var(--bear)}
-  .venta,.compra{font-size:.66rem;letter-spacing:.07em;padding:.1rem .4rem;
-        border:1px solid currentColor;white-space:nowrap}
-  .venta{color:var(--bear)} .compra{color:var(--bull)}
-  .marca{font-size:.64rem;letter-spacing:.05em;color:var(--mark);
-         border:1px solid var(--mark);padding:.05rem .3rem;white-space:nowrap}
-  /* --- el grafico de cada operacion --- */
-  .gr{width:100%;height:auto;display:block;margin:.15rem 0 .1rem;
-      background:color-mix(in srgb,var(--paper) 55%,transparent);
-      border:1px solid color-mix(in srgb,var(--rule) 55%,transparent)}
-  .cuerpo.alcista,.mecha.alcista{fill:var(--bull);stroke:var(--bull)}
-  .cuerpo.bajista,.mecha.bajista{fill:var(--bear);stroke:var(--bear)}
-  .mecha{stroke-width:1}
-  .riesgo{fill:var(--bear);opacity:.12}
-  .premio{fill:var(--bull);opacity:.12}
-  .lent{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:3 2}
-  .lries{stroke:var(--bear);stroke-width:1;stroke-dasharray:4 3}
-  .lprem{stroke:var(--bull);stroke-width:1;stroke-dasharray:4 3}
-  .etq{font-family:'IBM Plex Mono',monospace;font-size:8.5px;stroke:none}
-  text.lent{fill:var(--ink)}
-  text.lries{fill:var(--bear)}
-  text.lprem{fill:var(--bull)}
-  .marcaent{fill:var(--paper);stroke:var(--ink);stroke-width:1.6}
-  .salida.parcial{fill:var(--mark);stroke:var(--paper);stroke-width:1}
-  .salida.final{fill:var(--ink);stroke:var(--paper);stroke-width:1}
-  .eje{font-family:'IBM Plex Mono',monospace;font-size:8px;fill:var(--muted)}
+/* ---- reparto por instrumento ---- */
+.pares{display:flex;flex-direction:column;gap:11px}
+.par{display:grid;grid-template-columns:66px 1fr auto;gap:8px;
+     align-items:center}
+.par b{font-family:var(--mono);font-size:.78rem;font-weight:500}
+.riel{height:7px;background:var(--hueco);border:1px solid var(--linea);
+      position:relative;overflow:hidden}
+.riel i{position:absolute;inset:0 auto 0 0}
+.par .val{font-family:var(--mono);font-size:.76rem;
+          font-variant-numeric:tabular-nums}
+.par .sub{grid-column:2/4;margin-top:-6px;font-family:var(--mono);
+          font-size:.69rem;color:var(--apagada)}
 
-  .vacio{background:var(--tarjeta);border:1px dashed var(--rule);
-         padding:1.1rem;color:var(--muted);font-style:italic;margin-top:1rem}
-  .nota{color:var(--muted);font-style:italic;margin:.7rem 0 0;font-size:.88rem}
-  footer{margin-top:3rem;border-top:1px solid var(--rule);padding-top:.9rem;
-         font-size:.76rem;color:var(--muted)}
-</style>
-</head>
-<body>
-<div class="hoja">
-  <header>
-    <h1>Vantage EA</h1>
-    <div class="cintillo" id="cintillo"></div>
-  </header>
-
-  <nav class="pestanas">
-    <button data-hoja="curso" class="on">En curso <span class="n" id="nCurso">0</span></button>
-    <button data-hoja="cerradas">Operaciones cerradas <span class="n" id="nCerradas">0</span></button>
-  </nav>
-
-  <div class="hoja-pestana on" id="curso">
-    <h2>Posiciones abiertas<span class="cuenta mono" id="nAbiertas">0</span></h2>
-    <div id="abiertas"></div>
-    <h2>Órdenes esperando<span class="cuenta mono" id="nPendientes">0</span></h2>
-    <div id="pendientes"></div>
+/* ---- las operaciones: fichas en vertical, tabla en ancho ---- */
+.lista{display:flex;flex-direction:column;gap:1px;background:var(--linea)}
+.op{background:var(--panel);border-left:3px solid var(--linea);padding:0}
+.op.g{border-left-color:var(--sube)} .op.p{border-left-color:var(--baja)}
+.op>summary{list-style:none;cursor:pointer;padding:11px 13px;
+            display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;
+            align-items:center}
+.op>summary::-webkit-details-marker{display:none}
+.op>summary:focus-visible{outline:2px solid var(--acento);outline-offset:-2px}
+.op .sim{font-size:.88rem;font-weight:600}
+.op .r{font-family:var(--mono);font-size:1.05rem;font-weight:500;
+       font-variant-numeric:tabular-nums;text-align:right}
+.op .meta{grid-column:1/3;font-family:var(--mono);font-size:.69rem;
+          color:var(--apagada);min-width:0;overflow-wrap:anywhere}
+.op .din{font-family:var(--mono);font-size:.78rem;text-align:right;
+         font-variant-numeric:tabular-nums}
+.detalle{padding:0 13px 13px}
+.detalle .gr{width:100%;height:auto;display:block;background:var(--hueco);
+             border:1px solid var(--linea)}
+.detalle dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;
+            margin:10px 0 0;font-family:var(--mono);font-size:.72rem}
+.detalle dt{color:var(--apagada)} .detalle dd{margin:0;text-align:right}
+.lado{display:inline-block;font-family:var(--mono);font-size:.62rem;
+      letter-spacing:.06em;padding:1px 5px;border:1px solid currentColor}
+.marca2{display:inline-block;font-family:var(--mono);font-size:.62rem;
+        color:var(--aviso);border:1px solid var(--aviso);padding:1px 4px}
+.tabla{display:none}
+@media(min-width:760px){
+  .lista{display:none}
+  .tabla{display:block;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.82rem}
+  th{text-align:left;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--apagada);font-weight:600;padding:9px 12px;
+     border-bottom:1px solid var(--linea);white-space:nowrap}
+  td{padding:9px 12px;border-bottom:1px solid var(--hueco);white-space:nowrap}
+  tbody tr:hover{background:var(--hueco)}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+  .franja{display:inline-block;width:3px;height:14px;vertical-align:-2px;
+          margin-right:8px}
+}
+.vacio{padding:18px 13px;color:var(--apagada);font-size:.8rem}
+/* los colores del grafico por operacion que genera el espejo */
+.cuerpo.alcista,.mecha.alcista{fill:var(--sube);stroke:var(--sube)}
+.cuerpo.bajista,.mecha.bajista{fill:var(--baja);stroke:var(--baja)}
+.mecha{stroke-width:1}
+.riesgo{fill:var(--baja);opacity:.13}
+.premio{fill:var(--sube);opacity:.13}
+.lent{stroke:var(--tinta);stroke-width:1.2;stroke-dasharray:3 2}
+.lries{stroke:var(--baja);stroke-width:1;stroke-dasharray:4 3}
+.lprem{stroke:var(--sube);stroke-width:1;stroke-dasharray:4 3}
+.etq{font-family:var(--mono);font-size:8.5px;stroke:none}
+text.lent{fill:var(--tinta)} text.lries{fill:var(--baja)}
+text.lprem{fill:var(--sube)}
+.marcaent{fill:var(--panel);stroke:var(--tinta);stroke-width:1.6}
+.salida.parcial{fill:var(--aviso);stroke:var(--panel);stroke-width:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<div class="envoltorio">
+  <div class="alto">
+    <div class="marca">VANTAGE <span>OB</span></div>
+    <div class="pulso" id="pulso"><i></i><span>en linea</span></div>
+    <div class="sello" id="sello"></div>
   </div>
 
-  <div class="hoja-pestana" id="cerradas">
-    <div class="filtros">
-      <div class="campo">
-        <label>Filtrar por</label>
-        <div class="conmutador" id="porQue">
-          <button data-campo="cerrada_dia" class="on">Fecha de cierre</button>
-          <button data-campo="abierta_dia">Fecha de entrada</button>
-        </div>
-      </div>
-      <div class="campo">
-        <label for="desde">Desde</label>
-        <input type="date" id="desde">
-      </div>
-      <div class="campo">
-        <label for="hasta">Hasta</label>
-        <input type="date" id="hasta">
-      </div>
-      <div class="campo">
-        <label for="par">Par</label>
-        <select id="par"><option value="">Todos</option></select>
-      </div>
-      <div class="campo">
-        <label>Resultado</label>
-        <div class="conmutador" id="resultado">
-          <button data-r="" class="on">Todas</button>
-          <button data-r="gana">Ganadas</button>
-          <button data-r="pierde">Perdidas</button>
-        </div>
-      </div>
-      <button id="limpiar">Ver todo</button>
+  <div class="cifras" id="cifras"></div>
+
+  <div class="mandos">
+    <div class="chips" id="chips"></div>
+    <div class="palanca">
+      <button id="bEur" aria-pressed="true">€</button>
+      <button id="bR" aria-pressed="false">R</button>
     </div>
-    <div id="resumen"></div>
-    <div id="listaCerradas"></div>
   </div>
 
-  <footer id="pie"></footer>
-</div>
+  <div class="par2">
+    <div class="caja">
+      <header><h2>Resultado acumulado</h2><div class="ind" id="indCurva"></div></header>
+      <div class="cuerpo" id="grafico"></div>
+    </div>
+    <div class="caja">
+      <header><h2>Por instrumento</h2></header>
+      <div class="cuerpo"><div class="pares" id="pares"></div></div>
+    </div>
+  </div>
 
+  <div class="caja">
+    <header><h2>En espera</h2><div class="ind" id="indEsp"></div></header>
+    <div id="espera"></div>
+  </div>
+
+  <div class="caja">
+    <header><h2>Cerradas</h2><div class="ind" id="indOps"></div></header>
+    <div class="lista" id="lista"></div>
+    <div class="tabla" id="tabla"></div>
+  </div>
+</div>
 <script>
 const D = __DATOS__;
-const DIV = D.cuenta.divisa || "";
+const fmt = (n, d = 2) => n.toLocaleString("es-ES",
+      {minimumFractionDigits: d, maximumFractionDigits: d});
+const eur = n => (n < 0 ? "−" : "+") + fmt(Math.abs(n), 0) + " €";
+const rr  = n => (n < 0 ? "−" : "+") + fmt(Math.abs(n), 2);
 
-const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const eur = n => (n >= 0 ? "+" : "") + n.toLocaleString("es-ES",
-  {minimumFractionDigits:2, maximumFractionDigits:2}) + " " + DIV;
-const signo = n => n > 0 ? "sube" : (n < 0 ? "baja" : "");
-const lado  = l => `<span class="${l === "VENTA" ? "venta" : "compra"}">${l}</span>`;
-const conR  = n => (n > 0 ? "+" : "") + n.toFixed(2);
+// El orden es por CIERRE: el dinero entra en la cuenta al cerrar, no al abrir,
+// y una curva ordenada por apertura ensena un recorrido que nunca ocurrio.
+const cuando = s => {
+  const [f, h] = s.split(" ");
+  const [d, m] = f.split("/");
+  const [H, M] = (h || "0:0").split(":");
+  return new Date(2026, m - 1, d, H, M).getTime();
+};
+const cer = [...D.cerradas].sort((a, b) => cuando(a.cerrada) - cuando(b.cerrada));
+const gana = cer.filter(o => o.beneficio > 0).length;
+const acierto = cer.length ? 100 * gana / cer.length : 0;
+const totalR = cer.reduce((s, o) => s + (o.r ?? 0), 0);
+const totalE = cer.reduce((s, o) => s + o.beneficio, 0);
 
-function mazo(id, tarjetas, vacio) {
-  document.getElementById(id).innerHTML = tarjetas.length
-    ? `<div class="mazo">${tarjetas.join("")}</div>`
-    : `<div class="vacio">${vacio}</div>`;
+// La racha de perdidas mas cara. Es la cifra que dice si la cuenta aguanta, y
+// en el panel viejo no estaba en ningun sitio.
+let peor = 0, corre = 0;
+for (const o of cer) { corre = o.beneficio < 0 ? corre + o.beneficio : 0;
+                       peor = Math.min(peor, corre); }
+
+// OJO CON EL NOMBRE. Esto se llamaba `pares`, igual que el id del <div> que
+// lo pinta, y una `const` con el nombre de un elemento lo tapa: el
+// `pares.innerHTML = ...` de mas abajo escribia sobre este objeto y el panel
+// "Por instrumento" salia vacio sin dar ningun error.
+const porPar = {};
+for (const o of cer) {
+  const p = porPar[o.simbolo] ??= {n: 0, g: 0, e: 0, r: 0};
+  p.n++; p.e += o.beneficio; p.r += o.r ?? 0; if (o.beneficio > 0) p.g++;
+}
+const listaPares = Object.entries(porPar).sort((a, b) => b[1].e - a[1].e);
+
+sello.innerHTML = `${D.cuenta.login} · ${D.generado}`;
+if (!D.conectado) {
+  pulso.innerHTML = "<i></i><span>sin conexion</span>";
+  pulso.style.color = "var(--baja)";
 }
 
-document.getElementById("cintillo").innerHTML = [
-  `Balance <b class="mono">${D.cuenta.balance.toLocaleString("es-ES")}</b>`,
-  `Equidad <b class="mono">${D.cuenta.equidad.toLocaleString("es-ES")}</b>`,
-].filter(Boolean).join("<span>·</span>");
+cifras.innerHTML = [
+  ["Balance", fmt(D.cuenta.balance, 0) + " €", "",
+   `equidad ${fmt(D.cuenta.equidad, 0)}`],
+  ["Resultado", eur(totalE), totalE >= 0 ? "sube" : "baja",
+   `${rr(totalR)} R`],
+  ["Acierto", fmt(acierto, 1) + " %", acierto >= 50 ? "sube" : "baja",
+   `${gana} de ${cer.length}`],
+  ["Peor racha", eur(peor), "baja", "seguidas"],
+  ["Riesgo / op", fmt(D.riesgo, 0) + " €",
+   "", `${fmt(100 * D.riesgo / D.cuenta.balance, 2)} %`],
+  ["En juego", `${D.abiertas.length} / ${D.pendientes.length}`,
+   D.abiertas.length ? "av" : "", "abiertas / espera"],
+].map(([t, v, c, s]) =>
+  `<div class="celda"><small>${t}</small><b class="${c}">${v}</b>` +
+  `<em>${s}</em></div>`).join("");
 
-// --- pestanas -----------------------------------------------------------
-document.querySelectorAll(".pestanas button").forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll(".pestanas button").forEach(x => x.classList.remove("on"));
-    document.querySelectorAll(".hoja-pestana").forEach(x => x.classList.remove("on"));
-    b.classList.add("on");
-    document.getElementById(b.dataset.hoja).classList.add("on");
-  });
-});
+const maxAbs = Math.max(...listaPares.map(([, p]) => Math.abs(p.e)), 1);
+pares.innerHTML = listaPares.map(([s, p]) => `
+  <div class="par"><b>${s}</b>
+    <div class="riel"><i style="width:${(100 * Math.abs(p.e) / maxAbs).toFixed(1)}%;
+      background:${p.e >= 0 ? "var(--sube)" : "var(--baja)"}"></i></div>
+    <span class="val ${p.e >= 0 ? "sube" : "baja"}">${eur(p.e)}</span>
+    <span class="sub">${p.n} ops · ${fmt(100 * p.g / p.n, 0)} % · ${rr(p.r)} R</span>
+  </div>`).join("");
 
-// --- en curso -----------------------------------------------------------
-document.getElementById("nCurso").textContent = D.abiertas.length + D.pendientes.length;
-document.getElementById("nAbiertas").textContent = D.abiertas.length;
-document.getElementById("nPendientes").textContent = D.pendientes.length;
+indEsp.textContent = D.pendientes.length || "";
+espera.innerHTML = D.pendientes.length ? `<div class="lista">` +
+  D.pendientes.map(o => `<div class="op" style="border-left-color:var(--acento)">
+    <div style="padding:11px 13px;display:grid;
+         grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center">
+      <span class="sim">${o.simbolo}</span>
+      <span class="r av" style="grid-column:3">${fmt(o.lotes, 2)} lotes</span>
+      <span class="meta">${o.tipo} · nivel ${o.nivel} · stop ${o.stop}
+        · objetivo ${o.objetivo} · puesta ${o.puesta}</span>
+    </div></div>`).join("") + `</div>`
+  : `<div class="vacio">Ninguna orden en espera.</div>`;
 
-mazo("abiertas", D.abiertas.map(p => `
-  <article class="t ${p.flotante > 0 ? "gana" : (p.flotante < 0 ? "pierde" : "")}">
-    <div class="alto">
-      <span class="sim">${esc(p.simbolo)}</span>
-      ${lado(p.lado)}
-      ${p.en_breakeven ? '<span class="marca">break-even</span>' : ""}
-      <span class="r ${signo(p.flotante)}">${eur(p.flotante)}</span>
-    </div>
-    <div class="linea"><span>Entrada</span><span class="mono">${p.entrada}</span></div>
-    <div class="linea"><span>Stop</span><span class="mono">${p.stop || "—"}</span></div>
-    <div class="linea"><span>Objetivo</span><span class="mono">${p.objetivo || "—"}</span></div>
-    ${p.parcial_cobrado ? `<div class="linea"><span>Parcial ya cobrado</span><span class="r ${signo(p.parcial_cobrado)}">${eur(p.parcial_cobrado)}</span></div>` : ""}
-    <div class="linea"><span>${p.lotes} lotes · desde</span><span class="mono">${esc(p.abierta_desde)}</span></div>
-  </article>`),
-  "Ninguna posición abierta ahora mismo.");
+// ------------------------------------------------- filtro, escala y dibujo
+let filtro = null, modo = "e";
+const simbolos = [...new Set(cer.map(o => o.simbolo))].sort();
+chips.innerHTML = `<button data-s="" aria-pressed="true">Todos</button>` +
+  simbolos.map(s => `<button data-s="${s}" aria-pressed="false">${s}</button>`).join("");
 
-mazo("pendientes", D.pendientes.map(o => `
-  <article class="t">
-    <div class="alto">
-      <span class="sim">${esc(o.simbolo)}</span>
-      <span class="marca">${esc(o.tipo)}</span>
-      <span class="r mono">${o.nivel}</span>
-    </div>
-    <div class="linea"><span>Stop</span><span class="mono">${o.stop || "—"}</span></div>
-    <div class="linea"><span>Objetivo</span><span class="mono">${o.objetivo || "—"}</span></div>
-    <div class="linea"><span>${o.lotes} lotes · puesta</span><span class="mono">${esc(o.puesta)}</span></div>
-  </article>`),
-  "Ninguna orden puesta. El robot solo coloca una cuando hay un order block vivo y el precio está del lado que toca.");
-
-// --- cerradas, con filtros ----------------------------------------------
-let campoFecha = "cerrada_dia";
-let resultado = "";
-
-// El desplegable de pares se llena con los que REALMENTE hay en el historial,
-// no con una lista fija: así nunca ofrece un par sin operaciones ni se deja
-// fuera uno nuevo.
-const selPar = document.getElementById("par");
-[...new Set(D.cerradas.map(c => c.simbolo))].sort().forEach(s => {
-  const o = document.createElement("option");
-  o.value = s; o.textContent = s;
-  selPar.appendChild(o);
-});
-
-function pintarCerradas() {
-  const desde = document.getElementById("desde").value;
-  const hasta = document.getElementById("hasta").value;
-  const par = selPar.value;
-
-  const filas = D.cerradas.filter(c => {
-    const d = c[campoFecha];
-    if (desde && d < desde) return false;
-    if (hasta && d > hasta) return false;
-    if (par && c.simbolo !== par) return false;
-    // El cero cuenta como perdida: una operacion que sale plana no ha ganado.
-    if (resultado === "gana" && !(c.r > 0)) return false;
-    if (resultado === "pierde" && c.r > 0) return false;
-    return true;
-  });
-
-  document.getElementById("nCerradas").textContent =
-    filas.length === D.cerradas.length
-      ? filas.length : filas.length + "/" + D.cerradas.length;
-
-  // El resumen se recalcula SOBRE LO FILTRADO. Si no, el filtro engañaría:
-  // enseñaría cinco operaciones de un mes y el balance de seis meses.
-  const res = document.getElementById("resumen");
-  if (filas.length) {
-    const r = filas.map(x => x.r);
-    const suma = r.reduce((a, b) => a + b, 0);
-    const gana = r.filter(x => x > 0).length;
-    const euros = filas.reduce((a, b) => a + b.beneficio, 0);
-    res.innerHTML = `<div class="cifras">
-      <div class="cifra"><span class="n mono">${filas.length}</span><span class="e">operaciones</span></div>
-      <div class="cifra"><span class="n mono">${(100 * gana / filas.length).toFixed(1)}%</span><span class="e">acierto</span></div>
-      <div class="cifra"><span class="n mono ${signo(suma)}">${conR(suma)}</span><span class="e">R acumulados</span></div>
-      <div class="cifra"><span class="n mono ${signo(suma)}">${conR(suma / filas.length)}</span><span class="e">R por operación</span></div>
-      <div class="cifra"><span class="n mono ${signo(euros)}">${eur(euros)}</span><span class="e">resultado</span></div>
-    </div>
-    <p class="nota">Los R salen de dividir el resultado entre los ${D.riesgo} ${DIV}
-      que el robot arriesga por operación.</p>`;
-  } else {
-    res.innerHTML = "";
+function curvaSVG(sub) {
+  const v = sub.map(o => o.v);
+  const W = 720, H = 180, mI = 52, mD = 12, mT = 14, mB = 24;
+  const lo = Math.min(0, ...v), hi = Math.max(0, ...v), ra = (hi - lo) || 1;
+  const x = i => mI + (W - mI - mD) * (v.length === 1 ? .5 : i / (v.length - 1));
+  const y = t => mT + (H - mT - mB) * (1 - (t - lo) / ra);
+  const pts = v.map((t, i) => [x(i), y(t)]);
+  const li = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " +
+             p[1].toFixed(1)).join(" ");
+  const ar = `${li} L${x(v.length - 1).toFixed(1)} ${y(0).toFixed(1)}` +
+             ` L${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`;
+  let rej = "", etq = "";
+  for (let k = 0; k <= 4; k++) {
+    const t = lo + ra * k / 4, yy = y(t);
+    rej += `<line x1="${mI}" y1="${yy.toFixed(1)}" x2="${W - mD}"` +
+           ` y2="${yy.toFixed(1)}" class="rej"/>`;
+    etq += `<text x="${mI - 8}" y="${(yy + 3.5).toFixed(1)}" class="ejeY">` +
+           (modo === "e" ? fmt(t, 0) : fmt(t, 1)) + `</text>`;
   }
-
-  mazo("listaCerradas", filas.map(c => `
-    <article class="t ${c.r > 0 ? "gana" : (c.r < 0 ? "pierde" : "")}">
-      <div class="alto">
-        <span class="sim">${esc(c.simbolo)}</span>
-        ${lado(c.lado)}
-        ${c.parcial ? '<span class="marca">con parcial</span>' : ""}
-        <span class="r ${signo(c.r)}">${conR(c.r)} R</span>
-      </div>
-      ${c.grafico || ""}
-      <div class="dinero ${signo(c.beneficio)}">${eur(c.beneficio)}</div>
-      <div class="linea"><span>Entrada</span><span class="mono">${c.entrada}</span></div>
-      <div class="linea"><span>Abierta</span><span class="mono">${esc(c.abierta)}</span></div>
-      <div class="linea"><span>Cierre</span><span class="mono">${esc(c.cerrada)}</span></div>
-      <div class="linea"><span>Duración</span><span class="mono">${c.horas} h</span></div>
-    </article>`),
-    D.cerradas.length
-      ? "Ninguna operación con esos filtros."
-      : "Todavía no ha cerrado ninguna operación.");
+  const f = pts[pts.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" class="curva" role="img"
+    aria-label="Acumulado de ${v.length} operaciones cerradas">${rej}${etq}
+    <path d="${ar}" class="relleno"/><path d="${li}" class="trazo"/>
+    <circle cx="${f[0].toFixed(1)}" cy="${f[1].toFixed(1)}" r="4" class="punta"/>
+    <text x="${mI}" y="${H - 7}" class="ejeX">${sub[0].cerrada}</text>
+    <text x="${W - mD}" y="${H - 7}" class="ejeX" text-anchor="end"
+      >${sub[sub.length - 1].cerrada}</text></svg>`;
 }
 
-document.querySelectorAll("#porQue button").forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll("#porQue button").forEach(x => x.classList.remove("on"));
-    b.classList.add("on");
-    campoFecha = b.dataset.campo;
-    pintarCerradas();
-  });
-});
-document.querySelectorAll("#resultado button").forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll("#resultado button").forEach(x => x.classList.remove("on"));
-    b.classList.add("on");
-    resultado = b.dataset.r;
-    pintarCerradas();
-  });
-});
-["desde", "hasta"].forEach(id =>
-  document.getElementById(id).addEventListener("change", pintarCerradas));
-selPar.addEventListener("change", pintarCerradas);
-document.getElementById("limpiar").addEventListener("click", () => {
-  document.getElementById("desde").value = "";
-  document.getElementById("hasta").value = "";
-  selPar.value = "";
-  resultado = "";
-  document.querySelectorAll("#resultado button").forEach((x, i) =>
-    x.classList.toggle("on", i === 0));
-  pintarCerradas();
-});
+function ficha(o) {
+  const sig = o.beneficio >= 0;
+  return `<details class="op ${sig ? "g" : "p"}">
+    <summary>
+      <span class="sim">${o.simbolo}</span>
+      <span class="r ${sig ? "sube" : "baja"}" style="grid-column:3"
+        >${rr(o.r ?? 0)}</span>
+      <span class="meta"><span class="lado" style="color:${
+        o.lado === "VENTA" ? "var(--baja)" : "var(--sube)"}">${o.lado}</span>
+        ${o.entrada} · ${fmt(o.horas, 1)} h · ${o.cerrada}${
+        o.parcial ? ' <span class="marca2">parcial</span>' : ""}</span>
+      <span class="din ${sig ? "sube" : "baja"}" style="grid-column:3"
+        >${eur(o.beneficio)}</span>
+    </summary>
+    <div class="detalle">
+      ${o.grafico || ""}
+      <dl><dt>Entrada</dt><dd>${o.entrada}</dd>
+        <dt>Stop</dt><dd class="baja">${o.stop}</dd>
+        <dt>Objetivo</dt><dd class="sube">${o.objetivo}</dd>
+        <dt>Riesgo</dt><dd>${fmt(o.riesgo, 2)} €</dd>
+        <dt>Abierta</dt><dd>${o.abierta}</dd>
+        <dt>Cerrada</dt><dd>${o.cerrada}</dd></dl>
+    </div></details>`;
+}
 
-pintarCerradas();
+function pinta() {
+  const vis = filtro ? cer.filter(o => o.simbolo === filtro) : cer;
+  let a = 0;
+  const sub = vis.map(o => ({...o,
+    v: (a += modo === "e" ? o.beneficio : (o.r ?? 0))}));
 
-document.getElementById("pie").textContent =
-  "Página estática. La genera espejo.py leyendo el terminal; no calcula nada " +
-  "ni decide nada.";
-</script>
-</body>
-</html>
+  grafico.innerHTML = sub.length ? curvaSVG(sub)
+    : `<div class="vacio">Sin operaciones.</div>`;
+  const tot = sub.length ? sub[sub.length - 1].v : 0;
+  indCurva.innerHTML = `<span class="${tot >= 0 ? "sube" : "baja"}">` +
+    (modo === "e" ? eur(tot) : rr(tot) + " R") + `</span>`;
+  indOps.textContent = filtro ? `${vis.length} de ${cer.length}` : vis.length;
+
+  const rev = [...vis].reverse();
+  lista.innerHTML = rev.length ? rev.map(ficha).join("")
+    : `<div class="vacio">Sin operaciones para ese filtro.</div>`;
+  tabla.innerHTML = rev.length ? `<table><thead><tr>
+    <th>Instrumento</th><th>Lado</th><th class="num">Entrada</th>
+    <th class="num">R</th><th class="num">Resultado</th>
+    <th class="num">Horas</th><th>Cerrada</th></tr></thead><tbody>` +
+    rev.map(o => `<tr>
+      <td><i class="franja" style="background:${o.beneficio >= 0 ?
+        "var(--sube)" : "var(--baja)"}"></i>${o.simbolo}</td>
+      <td><span class="lado" style="color:${o.lado === "VENTA" ?
+        "var(--baja)" : "var(--sube)"}">${o.lado}</span></td>
+      <td class="num">${o.entrada}</td>
+      <td class="num ${o.r >= 0 ? "sube" : "baja"}">${rr(o.r ?? 0)}</td>
+      <td class="num ${o.beneficio >= 0 ? "sube" : "baja"}">${eur(o.beneficio)}</td>
+      <td class="num">${fmt(o.horas, 1)}</td>
+      <td style="color:var(--apagada)">${o.cerrada}</td></tr>`).join("") +
+    `</tbody></table>` : "";
+}
+
+chips.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  filtro = b.dataset.s || null;
+  chips.querySelectorAll("button").forEach(o =>
+    o.setAttribute("aria-pressed", String(o === b)));
+  pinta();
+});
+function escala(nuevo, si, no) {
+  modo = nuevo;
+  si.setAttribute("aria-pressed", "true");
+  no.setAttribute("aria-pressed", "false");
+  pinta();
+}
+bEur.onclick = () => escala("e", bEur, bR);
+bR.onclick   = () => escala("r", bR, bEur);
+pinta();
+</script></body></html>
 """
 
 

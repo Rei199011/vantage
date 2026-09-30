@@ -13,3 +13,13 @@ venv/
 # Sistema
 .DS_Store
 Thumbs.db
+maquetas/
+
+# Copias de seguridad que deja Claude al tocar un fichero
+*.antes-de-*
+*.plantilla-vieja
+*.riesgo500
+*.sin-print-params
+
+# Estado de los avisos: cambia en cada vuelta y no es codigo
+avisos_estado.json

@@ -46,8 +46,9 @@ except ImportError:
 # algún día se cambia ObjetivoVecesR en el gráfico, la etiqueta escrita a mano
 # mentiría mientras la calculada diría la verdad.
 ROBOTS = {
-    20260822: "M15",
-    20260921: "M5",
+    20260822: "M15 con EMA",      # OB 1_1      -> EURJPY
+    20260930: "M15 sin EMA",      # OB_sin_EMA  -> EURUSD GBPJPY USDCAD XAUUSD
+    20260921: "M5",               # OB_5min, por si vuelve a usarse
 }
 
 ESTADO = "avisos_estado.json"
