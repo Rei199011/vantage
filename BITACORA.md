@@ -422,3 +422,149 @@ con EMA, 51,3 % sin EMA). Ningún tramo llega a Bonferroni (z = 1,71 y 1,70 sobr
 2,81 exigido), y el mejor tramo cambia según la configuración, que es la firma
 del ruido. El motor **sí** reproduce el corte en EURUSD (63,0 % contra 45,5 %):
 era una particularidad de ese par y ese año.
+
+---
+
+## 2026-10-07 · Dos fallos del motor, el suelo del stop y US30
+
+Día largo. Se arreglan dos fallos del motor —uno de ellos llevaba contaminando
+todo lo medido— y con el motor bueno se rehacen las dos conclusiones que
+dependían solo de él.
+
+### El fallo de la migaja, que explicaba el 8 % que llevaba una semana buscando
+
+Para simular el 1:1 se venía usando `peso_tp1=0.999` con `objetivo=3R`: cierra el
+99,9 % en 1R y **deja un 0,1 % corriendo hasta 3R**. Esa migaja mantiene la
+posición abierta, y mientras hay posición abierta el motor **no toma ninguna
+entrada nueva**.
+
+Lo destapó US30:
+
+```
+duración mediana de una operación:    1,2 horas
+duración máxima:                    447,0 horas    <-- 18 días y medio
+```
+
+Dieciocho días con una operación de stop a 50 puntos en un índice que se mueve
+300 al día. Imposible, salvo que lo que siguiera abierto fuese una migaja
+buscando un objetivo que casi nunca llegaba.
+
+De las 15 entradas que el probador tomaba y el motor no en US30 2026, **nueve
+eran exactamente eso**: el motor estaba «ocupado» con un resto de semanas atrás.
+
+Antes había probado tres hipótesis y las había descartado midiéndolas: la altura
+del order block (coincide, el máximo del año cuadra al centésimo de pip), el tipo
+de orden, y el suelo del stop. Ninguna era. **Nunca miré las duraciones**, que es
+donde estaba a la vista.
+
+Arreglo: `sin_parciales=True` en `ObDosLados`, que emite el objetivo en 1R y
+ningún parcial. El motor rechaza `objetivo_veces_riesgo=1.0` cuando hay
+parciales —y con razón, un parcial que cae en el objetivo no es un parcial—, así
+que la salida no era forzar ese número sino no emitir parcial ninguno.
+
+**Resultado, contra los seis backtests de Reinaldo:**
+
+```
+  par       con migaja   sin migaja   probador
+  XAUUSD        34           35          35
+  USDCAD        34           39          38
+  GBPJPY        31           38          37
+  EURUSD        48           50          48
+  EURJPY        14           17          15
+  US30M         51           61          65
+  TOTAL        212          240         238      -15,2%  ->  +0,8%
+```
+
+Y desaparecen las duraciones imposibles: el oro de 618 horas a 100, GBPJPY de
+412 a 108.
+
+### El segundo fallo: el listón salía vacío sin avisar
+
+Al estrenar el modo sin parciales, el listón al azar dejó de producir señales: su
+comprobación de geometría exigía `tp2 < tp1`, y sin parciales **el objetivo ES el
+1:1**, así que los dos caen en el mismo precio. Descartaba todo.
+
+Y lo hacía **en silencio**: la sección del informe aparecía sin una sola línea,
+sin error. Si no llego a mirarla, el suelo del stop se habría dado por validado
+con dos pruebas de tres.
+
+### El suelo del stop: confirmado en 0,06 %, y con mejor argumento
+
+Rehecho el barrido con el motor bueno:
+
+```
+  suelo   ops  acierto  R total   neto (desliz. 1,1 pips)
+  0,04%   179   63,1%    +49,1        +27.113
+  0,06%   148   66,2%    +50,0        +31.277
+  0,08%   119   68,9%    +47,0        +31.751
+  0,10%    98   68,4%    +38,0        +26.013
+  0,12%    79   67,1%    +29,0        +20.135
+  0,15%    59   66,1%    +20,2        +14.213
+```
+
+Dos cosas cambian respecto a la medición rota, las dos a favor del 0,06:
+
+**El R total ahora tiene un máximo claro en 0,06 %.** Con la migaja salía plano
+entre 0,04 y 0,08 y no distinguía. Ahora +49,1 → **+50,0** → +47,0: pasado el
+0,06 ya se tira filo, no solo operaciones caras.
+
+**Y en dinero 0,06 y 0,08 quedan empatados** (+31.277 contra +31.751, un 1,5 %
+que es ruido). Antes el 0,08 ganaba por un 5 %.
+
+Las tres pruebas, con el motor bueno:
+
+```
+  1. dos mitades   0,06%:  64,9% y 67,6%     estable
+  2. listón        0,06%:  66,2% contra 50,7%  ventaja +15,6 pt  z=3,95
+  3. por par       mejora o empata en cuatro de cinco; solo USDCAD prefiere 0,04
+```
+
+**Lo aplicado el 06/10 en MetaQuotes era correcto y no se toca.**
+
+### US30M: el arreglo no lo rescata
+
+Reinaldo lo puso a operar con su backtest de 2026 (65 ops, 55,4 %, +26,5 %) y
+objetó, con razón, que el motor ya había fallado antes con años anteriores —fue
+lo que pasó con las compras—. Arreglado el motor, los años anteriores dicen lo
+mismo:
+
+```
+  año    ops  acierto  total R
+  2022    59   52,5%     +4,2
+  2023    74   41,9%    -11,0
+  2024    71   35,2%    -20,2
+  2025    78   38,5%    -22,0
+  2026    61   50,8%     +5,4
+  TODO   344   43,3%    -42,6
+
+  listón 47,2%  ->  la estrategia va 3,8 puntos POR DEBAJO del azar
+```
+
+Y ahora el motor sí cuadra con el probador en 2026: **61 operaciones contra 65**,
+donde antes eran 51. Así que ya no vale escudarse en que el motor no sabe medir
+índices.
+
+**Decisión de Reinaldo: se queda, con revisión escrita por adelantado.**
+
+```
+US30M entra el 07/10/2026 con el backtest de 2026.
+Se revisa a las 30 operaciones en vivo:
+    acierto < 45%   se quita
+    acierto > 55%   se queda y deja de discutirse
+    entre medias    se espera a 50 operaciones
+```
+
+Fijar el criterio antes es lo que impide que luego cada uno lea los números a su
+favor. Lo que sí queda cerrado: **US30 no va a FTMO**. Su caída de equidad en el
+backtest de 2026 es del 15,86 % sobre un límite del 10 %.
+
+### Lo que esto obliga a recordar
+
+Todo lo medido **solo con el motor** antes del 07/10 llevaba la migaja dentro. Lo
+validado contra el probador de Reinaldo se sostiene, porque el recuento estaba
+bajo en todas las configuraciones por igual y la comparación entre ellas no se
+altera: **la decisión de la EMA sigue en pie**.
+
+Y la lección que conviene no olvidar: tres hipótesis medidas y descartadas
+correctamente, y la causa estaba en una columna que nunca miré. Cuando los
+números no cuadran, mirar también lo que no se está midiendo.
