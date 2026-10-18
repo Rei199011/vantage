@@ -854,3 +854,46 @@ otra ronda de verificación contra el probador.
 
 **C es la configuración a usar el día que se vuelva a un desafío**, donde el
 límite de caída pesa más que el total. Queda escrito para no volver a medirlo.
+
+### CORRECCIÓN del 18/10, por la tarde: el filtro de la EMA no compensa
+
+Lo escrito más arriba sobre la opción C —105 operaciones al 69,5 % y +41,7 R—
+**está mal**, y el error es el mismo que ya se cometió esa misma mañana con el
+criterio de solapes: medir una aproximación en vez de simular lo que la EA hace.
+
+Aquel número salió de filtrar **después** las operaciones del sin-EMA. Pero una
+EA no filtra después: cuando la EMA veta una entrada, **la posición no se abre**,
+y al no abrirse queda libre para tomar otra cosa. Filtrar a posteriori conserva
+el bloqueo de unas operaciones que luego se descartan.
+
+Implementado el modo de verdad en el motor (`ema_como_filtro`) y comparado con
+el filtrado posterior: **90 operaciones contra 105, +35,3 R contra +41,7**. Solo
+86 coinciden.
+
+Las tres opciones, ya bien medidas, con la caída por Monte Carlo de 20.000
+barajadas:
+
+```
+                            ops  acierto   total  caida p5   EUR/ano
+  el mas cercano a secas    159   64,8%   +49,0 R   -8,0 R    7.356
+  el mas cercano + veto      90   68,9%   +35,3 R   -6,0 R    5.292
+  la EMA decide el lado      92   67,4%   +33,3 R   -6,3 R    4.992
+```
+
+**El filtro no compensa.** Acierta más pero gana un 28 % menos, y el ratio
+tampoco mejora: 6,1 R de beneficio por R de caída sin filtro contra 5,9 con él.
+
+Y el argumento de «mejor para un desafío» tampoco se sostiene. Si lo que limita
+es la caída, se baja el riesgo hasta que quepa: con el sin-EMA se podría
+arriesgar el 1,25 % por operación y con el filtro el 1,67 %, y sobre la cuenta
+sale **61 % contra 59 %**. Gana igualmente el sin-EMA.
+
+**Lo que opera hoy es la mejor de las tres.** No se cambia nada.
+
+La EA `OB_filtro_EMA.mq5` queda construida, compilada y guardada, con su
+cabecera diciendo que no compensa y por qué. Mágico 20261018, sin estrenar.
+
+Lo que **sí** queda demostrado es que la EMA **separa**: 69,5 % cuando acompaña
+contra 55,6 % cuando no, con los cinco instrumentos en la misma dirección. Lo
+que no se sostiene es que convenga actuar sobre esa diferencia vetando entradas:
+la operación que se veta no se sustituye por nada mejor.
