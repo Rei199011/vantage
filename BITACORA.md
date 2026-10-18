@@ -568,3 +568,289 @@ altera: **la decisión de la EMA sigue en pie**.
 Y la lección que conviene no olvidar: tres hipótesis medidas y descartadas
 correctamente, y la causa estaba en una columna que nunca miré. Cuando los
 números no cuadran, mirar también lo que no se está midiendo.
+
+---
+
+## 2026-10-13 · Informe semanal (semana del 05 al 12/10)
+
+### Arreglado en MetaQuotes
+
+**1. El suelo del stop había vuelto a 0,04 % sin avisar.** Reinaldo lo puso a
+0,06 % a mano el 08/10 a las 00:02, pero el terminal se reinició a las 09:38 sin
+cerrar limpio y MT5 solo guarda los parámetros de los gráficos al cerrar bien.
+Volvió a arrancar con 0,04 % en los seis gráficos y así ha operado cinco días.
+Lo prueba la línea `PARAMETROS:` de cada EA en `MQL5/Logs/20261008.log`
+(00:02 dice 0.06 %, 09:39 dice 0.04 %).
+
+- Hecho: cierre limpio del terminal, `RiesgoMinPctPrecio=0.04 -> 0.06` en los
+  seis `Profiles/Charts/Default/chart0*.chr`, relanzado. A las 09:38:53 del
+  13/10 las seis EAs escriben `suelo=0.06%`. Sin órdenes duplicadas.
+- Justificación: la medición del 07/10 (148 ops, 66,2 %, +15,6 pt sobre el
+  listón, z=3,95). No es un cambio nuevo; es restaurar lo decidido.
+- Deshacer: copia de los perfiles en
+  `Profiles/Charts/Default.antes-suelo006-20261013/`; cerrar el terminal limpio,
+  copiarla encima de `Default/` y relanzar.
+
+**2. Las EAs se descolgaban al arrancar si la ficha del símbolo llegaba vacía.**
+El 05/10 a las 09:20, tras un reinicio, cuatro gráficos (EURUSD, GBPJPY, EURJPY,
+USDCAD) dieron `Ficha del instrumento incompleta: valor=0.0` → `INIT_FAILED` →
+EA quitada del gráfico. Estuvieron **cuatro horas** sin EA hasta que alguien las
+recargó a las 13:25.
+
+- Hecho: en `OnInit` de `OB_sin_EMA.mq5` y `OB 1_1.mq5`, si `tick` o
+  `valor_tick` salen a 0, reintenta cada 0,5 s hasta 15 s antes de rendirse.
+  No toca nada de la lógica de trading. Compilados con 0 errores y 0 avisos.
+- Deshacer: copias `*.mq5.antes-espera-ficha` y `*.ex5.antes-espera-ficha` en
+  `MQL5/Experts/`.
+
+### Visto y no arreglado
+
+- **US30M no puede operar en esta cuenta.** `symbol_info("US30M").trade_mode`
+  es 0 (deshabilitado), igual que `US30`. 237 órdenes rechazadas con
+  `[Trade disabled]` entre el 05 y el 12/10, ninguna aceptada. La regla de
+  revisión del 07/10 (a las 30 operaciones) no puede cumplirse aquí nunca.
+  La EA se deja en el gráfico: no hace daño.
+- Los lunes a las 09:00 algunas órdenes salen con `[no connection]` y entran al
+  cuarto de hora siguiente. Normal del arranque de semana; no se toca.
+
+### FTMO: perdida el 08/10 (solo informe)
+
+La cuenta es **"$50k FTMO Free Trial 1-Step"**. El 08/10 cerró dos stops
+seguidos al 1,5 % (USDCAD −817,14 y EURUSD −736,84 con comisión) y FTMO cerró la
+segunda él mismo (`CLOSED_BY_FTMO`). Desde las 17:26 el servidor tiene el
+trading deshabilitado y la EA acumula `[Trade disabled]` cada 15 minutos.
+
+Los números cuadran con un **límite diario del 3 %**, no del 5 %: saldo a
+medianoche 50.127,64, suelo al 3 % = 48.627,64, saldo tras el cierre 48.511,41.
+**La tabla de riesgo del 29/09 se hizo contra el 5 %**; contra el 3 %, dos
+pérdidas al 1,5 % más comisión ya lo rompen. El 3 % está deducido de las cifras:
+confirmarlo en las reglas del 1-Step.
+
+Otro dato: con stops de 4-5 pips la comisión (~5 USD/lote) y el deslizamiento
+del stop pesan. El EURUSD del 06/10 perdió −1,32 R: 0,11 R de comisión y 1,1
+pips de deslizamiento sobre un stop de 4,5. Las EAs de FTMO siguen con suelo
+0,04 % y sin el arreglo del arranque.
+
+### Resultados de la semana (R con el riesgo real de cada posición)
+
+```
+MetaQuotes (riesgo 150)          FTMO (riesgo 750)
+05/10 GBPJPY compra  +1,00 R     06/10 EURUSD venta   -1,32 R
+05/10 GBPJPY compra  -1,00 R     06/10 EURJPY venta   +0,93 R
+08/10 XAUUSD compra  +1,00 R     08/10 USDCAD compra  -1,10 R
+08/10 USDCAD compra  -1,00 R     08/10 EURUSD venta   -1,02 R  CLOSED_BY_FTMO
+08/10 GBPJPY compra  -1,00 R
+12/10 GBPJPY compra  +1,00 R
+-----                            -----
+6 ops, 3 ganadas, -0,01 R        4 ops, 1 ganada, -2,51 R
+-10,15 EUR                       -1.997,27 USD
+```
+
+Sin parciales en ninguna: cada posición tiene una sola salida. Abierta a cierre:
+USDCAD compra 2,29 lotes en MetaQuotes. Diez operaciones no dicen nada de la
+estrategia, y no se cambia nada por ellas.
+
+### La idea medida: order block con FVG. NO entra.
+
+La condición que más repite la literatura ICT/SMC: un OB «de verdad» deja un
+hueco de valor (fair value gap) en el desplazamiento que sale de él. Estudio en
+`motor/estudios/fvg_ob.py` + `fvg_ob_juntar.py`, volcados en
+`motor/salidas/fvg/`. Configuración de producción (sin EMA salvo EURJPY, suelo
+0,06 %, 1R entero, Londres+NY, sin costes), **2023-03 a 2026-09**, cinco pares,
+listón con 4 semillas.
+
+Primer hallazgo: con el hueco buscado en las 5 velas siguientes, **39 de 41 OBs
+lo tienen** — el quiebre de estructura que ya exige la regla casi siempre lo
+abre. Así que se mide la definición estricta: el hueco lo abre la vela
+inmediatamente siguiente al OB.
+
+```
+                     ops   acierto   esperanza    total    vs liston
+  todos (ahora)      894    56,0%     +0,150    +134,3 R   +6,4 pt  z=3,81
+  CON fvg            572    55,8%     +0,158     +90,4 R   +6,6 pt  z=3,17
+  SIN fvg            338    55,3%     +0,112     +37,9 R   +5,8 pt  z=2,14
+```
+
+- **Mitades:** CON 50,5 % / 61,1 %; SIN 50,6 % / 59,9 %. Igual de mal y de bien.
+- **Listón:** +6,6 pt contra +5,8 pt. Ocho décimas: ruido.
+- **Por par:** el CON gana en GBPJPY, EURJPY y XAUUSD por menos de 3 puntos, y
+  pierde en EURUSD y USDCAD.
+
+**El hueco no distingue nada.** Filtrar por él tiraría el 36 % de las
+operaciones y bajaría el total de +134 a +90 R por la misma ventaja. Descartado;
+no volver a medirlo.
+
+### Dato que conviene no perder
+
+Sobre 3,6 años y 894 operaciones, la configuración actual tiene ventaja real
+sobre el azar (**+6,4 pt, z=3,81**), pero está **muy concentrada en el periodo
+reciente**: +0,049 R hasta octubre de 2024 (IC cruzando el cero) contra +0,252 R
+desde entonces. No cambia nada hoy, pero es la razón para no extrapolar el
+backtest de 2026 a los años que vengan.
+
+---
+
+## 2026-10-13 (noche) · La compra de USDCAD: quiebre pequeño y OB = pivote. Ninguna entra.
+
+Reinaldo cuestionó la compra de USDCAD del 13/10 (límite 1,42608, stop
+1,42504, −1 R). Reconstruida con las velas M15:
+
+- **El quiebre no fue solo de mechas.** El máximo previo de 60 velas era 1,42675
+  (12/10 14:15). La vela de las 17:45 cerró en 1,42729: +5,4 pips con cuerpo; la
+  mecha llegó a +9,0. Exigir cierre no habría quitado esta entrada.
+- **Sí era un quiebre pequeño** tras un rango de 9 pips (1,42586-1,42675), y el
+  OB era la propia vela del mínimo (16:30, una mecha de barrido).
+
+Se midieron las dos dudas. Estudio en `motor/estudios/quiebre_y_pivote.py`,
+volcados en `motor/salidas/qp/`, juntados con `fvg_ob_juntar.py`.
+Configuración de producción, 2023-03 a 2026-09, cinco pares, listón con 4
+semillas. Ojo: el filtro descarta el OB en vez de buscar uno más antiguo, como
+haría la EA si se programara.
+
+**Diagnóstico previo, caro de encontrar:** el **95 %** de los order blocks que
+detecta la regla son la propia vela del pivote (EURUSD 95,0 %, USDCAD 95,9 %).
+No es una rareza de esta entrada: es lo normal. Y el quiebre mediano, medido al
+emitir la señal, son ~7 ATR(14); el decil más bajo, ~1,4 ATR.
+
+### Idea 1: quiebre mínimo en ATR. NO entra.
+
+```
+                         ops  acierto  esperanza   total   1a mitad  2a mitad  vs liston
+  todos (ahora)          894   56,0%    +0,150   +134,3 R   51,0%     61,1%   +6,4 pt z=3,81
+  quiebre >= 1,5 ATR     586   55,8%    +0,143    +83,9 R   49,2%     63,3%   +7,5 pt z=3,64
+  quiebre >= 3 ATR       378   56,1%    +0,164    +62,1 R   49,2%     63,5%   +7,4 pt z=2,88
+  quiebre >= 6 ATR       161   58,4%    +0,210    +33,8 R   49,4%     67,5%   +8,7 pt z=2,20
+  SOLO quiebre < 1,5     325   56,3%    +0,158    +51,4 R   54,5%     57,8%   +7,4 pt z=2,67
+```
+
+Los quiebres pequeños rinden **igual** que el resto (56,3 % y +7,4 pt sobre el
+azar), y en la primera mitad son incluso los mejores. El 58,4 % de ≥6 ATR viene
+entero de la segunda mitad (49,4 % en la primera) y se hunde en el oro (46,3 %).
+Filtrar solo quita operaciones: el total cae de +134 a +84 R con el umbral más
+suave.
+
+### Idea 2: descartar OB = pivote. NO entra, y el dato apunta al revés.
+
+```
+                         ops  acierto  esperanza   total   vs liston
+  OB distinto del pivote  25   32,0%    -0,360     -9,0 R  -12,0 pt z=-1,20
+  SOLO OB = pivote       874   56,8%    +0,165   +144,3 R   +7,2 pt z=4,23
+```
+
+Quitar los OB = pivote dejaría 25 operaciones en 3,6 años, y esas van **peor**
+(32 %). Lo contrario —quedarse solo con OB = pivote— mejora las tres pruebas
+sobre el papel (+144 contra +134 R, las dos mitades, los cinco pares), pero
+toda la diferencia sale de **25 operaciones con z = −1,2**. Muy por debajo de las
+393 que hacen falta. No se aplica; se anota por si con más historia se sostiene.
+
+**No cambia nada en MetaQuotes.** La entrada del 13/10 era una operación normal
+de la regla, no un caso raro.
+
+---
+
+## 2026-10-18 · Walk-forward, Monte Carlo y la EMA, medida limpia
+
+Reinaldo propuso comprar StrategyQuant X para mejorar. Se descartó por ahora y
+se construyó en el motor lo único de esa herramienta que de verdad nos faltaba.
+El porqué está más abajo. Las tres mediciones quedan en `estudios/`:
+`walk_forward.py`, `monte_carlo.py` y `ema_limpio.py`.
+
+### Por qué no StrategyQuant, de momento
+
+La edición mínima con walk-forward y Monte Carlo es la **Professional, 1.490 $**
+(la Starter no trae el Optimizer). Pero el problema no es el precio:
+
+**No puede leer nuestra estrategia.** Su propia documentación dice que *no se
+puede coger el código MQL y copiarlo y pegarlo*; los bloques propios se escriben
+como snippets en Java. Para que tocara el order block habría que reescribir la
+regla entera **por tercera vez**, después del MQL5 y el motor. Acabamos de pasar
+dos semanas cazando diferencias entre **dos** implementaciones.
+
+**Y para lo que está diseñado es justo lo que nos ha mordido.** Genera miles de
+estrategias y se queda con las mejores: la versión industrial del error de las
+compras, del stop estrecho y del 0,08 %. Tiene sentido comprarlo el día que se
+quiera abrir el frente de **buscar estrategias nuevas**, que es otro proyecto.
+
+### Walk-forward: el 0,06 % confirmado sobre cuatro años
+
+Doce tramos de cuatro meses, de 2023-01 a 2026-09:
+
+```
+  fijo 0,04%                          +125,2 R
+  fijo 0,06%                          +132,3 R   <- el mejor
+  fijo 0,08%                          +113,4 R
+  fijo 0,10%                           +94,0 R
+  elegir segun el tramo anterior      +121,9 R
+  el mejor de cada tramo (IMPOSIBLE)  +153,3 R
+```
+
+**El 0,06 % no era cosa de 2026**: es el mejor valor fijo sobre casi cuatro años
+y fue el mejor en 6 de los 12 tramos. La decisión del 06/10 se tomó con nueve
+meses y aguanta con cuarenta y cinco.
+
+**Y reoptimizar no sirve.** Elegir cada tramo el ganador del anterior da +121,9 R,
+diez por debajo de dejarlo quieto. Nada de retocar el suelo cada trimestre.
+
+Un aviso que se ve en la tabla: los tramos de 2023 dan +1,5, +1,6 y +4,1 R
+mientras los de 2025-2026 dan +23, +11, +21, +18, +19. **El filo es mucho mayor
+en los dos últimos años.** Los números recientes son más optimistas que la media
+histórica.
+
+### Monte Carlo: robusto por las cuatro vías
+
+Sobre las 148 operaciones de 2026, 5.000 repeticiones:
+
+```
+  otro orden      caida mediana -5,0 R   p5 -8,0   la real (-4,0) fue percentil 62
+  bootstrap       total mediano +50,3 R  p5 +30,8  anos en perdidas: 0,0%
+  perder entradas al 25% todavia da +37,5 R; al 50%, +25,0 R
+  peaje           el filo se agota en 0,32 R por operacion (49 EUR a 150 de riesgo)
+```
+
+Los dos números útiles en la práctica: **la caída que hay que estar dispuesto a
+aguantar es -8 R (1.200 EUR)**, no los -4 que tocaron; y hay **seis veces de
+margen** sobre la comisión de FTMO (0,054 R) antes de que el coste se lo coma.
+
+El Monte Carlo prueba robustez, **no existencia**: remuestrea un año bueno. Lo
+que descarta el sobreajuste es el listón, y el walk-forward avisa de que 2023 era
+bastante más flojo.
+
+### La EMA sí separa, medida limpiamente
+
+Para cada operación del sin-EMA se mira si el precio estaba del lado correcto de
+la EMA200 de H1 **en su propia vela de entrada** — la condición exacta de la EA
+con EMA. (Comprobación: de las 92 operaciones con-EMA, 0 sin acuerdo.)
+
+```
+  la EMA de acuerdo   105 ops   69,5%   +41,7 R   z=+4,00   vs azar +18,4 pt
+  la EMA en contra     54 ops   55,6%    +7,3 R   z=+0,82   vs azar  +4,4 pt
+  todas               159 ops   64,8%   +49,0 R   z=+3,73   vs azar +13,6 pt
+```
+
+Son **13,9 puntos**, no los 21,5 que daba el criterio de solape del 16/10: aquel
+apaño inflaba el efecto. Pero pasa las tres pruebas: las dos mitades (65,4 y 73,6
+contra 55,6 y 55,6), **los cinco instrumentos en la misma dirección**, y el
+listón.
+
+Las 54 operaciones «en contra» aportan +7,3 R con z = 0,82: indistinguibles de
+una moneda, pero pagan comisión, ocupan margen y bloquean entradas.
+
+### Las tres configuraciones, con la caída medida por Monte Carlo
+
+```
+  opcion                          ops  acierto   total   caida p5   total EUR/ano
+  A. solo con EMA                  92   67,4%   +33,3 R      --
+  B. sin EMA, todo (opera hoy)    159   64,8%   +49,0 R    -8,0 R      +7.356
+  C. sin EMA + la EMA de filtro   105   69,5%   +41,7 R    -6,0 R      +6.258
+```
+
+C da **un 25 % menos de caída por un 15 % menos de beneficio**. Mejor ratio, peor
+total.
+
+**Decisión: no se cambia nada por ahora.** B lleva diez días corriendo, el margen
+de mejora es modesto, y pasar a C exige un modo nuevo en la EA —elegir el order
+block más cercano y *después* exigir el acuerdo de la EMA, que hoy no existe— más
+otra ronda de verificación contra el probador.
+
+**C es la configuración a usar el día que se vuelva a un desafío**, donde el
+límite de caída pesa más que el total. Queda escrito para no volver a medirlo.
