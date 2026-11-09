@@ -897,3 +897,149 @@ Lo que **sí** queda demostrado es que la EMA **separa**: 69,5 % cuando acompañ
 contra 55,6 % cuando no, con los cinco instrumentos en la misma dirección. Lo
 que no se sostiene es que convenga actuar sobre esa diferencia vetando entradas:
 la operación que se veta no se sustituye por nada mejor.
+
+---
+
+## 2026-11-09 · Doce años de datos: la estrategia es una moneda al aire
+
+**Esta es la entrada más importante de la bitácora.** Invalida la base sobre la
+que se decidió todo lo anterior.
+
+Reinaldo preguntó por qué estábamos fallando tanto últimamente. La respuesta es
+que no estamos fallando últimamente: estábamos acertando de forma excepcional
+durante dos años y está volviendo a lo que siempre fue.
+
+### Lo que dispara la pregunta
+
+Desde el 08/10, con el suelo del stop en 0,06 %: **23 operaciones, 7 aciertos
+(30 %), −1.367 €**. Con el 66 % que teníamos medido, eso está a 3,6 desviaciones
+— una vez de cada seis mil. No era una racha.
+
+Descartado primero lo fácil: la configuración estaba intacta (los cinco gráficos
+escriben `riesgo=150 suelo=0.06%`), y la mecánica del 1:1 funcionaba (7 aciertos
+y 16 fallos son −9 R, que a 150 € son −1.350; el real fue −1.367). **Lo que
+fallaba eran las entradas, no la ejecución.**
+
+### No hay nada roto: es el mercado
+
+Con datos frescos, el motor da **37 %** en ese mismo periodo donde la EA en vivo
+dio 30 %, y par por par casi clavado (EURJPY 1/3 contra 0/3, EURUSD 1/3 contra
+1/3, GBPJPY 3/10 contra 3/8, USDCAD 1/6 contra 1/5). La EA hace exactamente lo
+que el motor predice.
+
+### Y entonces apareció esto
+
+Bajando el histórico completo del bróker —300.000 velas por par, hasta 2014—:
+
+```
+  3.431 operaciones desde 2014    49,3% de acierto    +37,6 R
+```
+
+A 1:1, un 49,3 % sobre 3.431 operaciones está a 0,8 desviaciones del azar puro.
+**Indistinguible de una moneda.** Y los +37,6 R en doce años son 0,011 R por
+operación: menos que el ruido.
+
+Por semestres:
+
+```
+  2014-H1 a 2024-H2   22 semestres SEGUIDOS por debajo del 55%
+                      acumulado al final de 2024:  -62,3 R
+  2025-H1   62,5%  +35,6 R
+  2025-H2   59,8%  +23,7 R
+  2026-H1   63,0%  +26,9 R
+  2026-H2   57,0%  +13,7 R
+                      acumulado hoy:  +37,6 R
+```
+
+**Todo el resultado positivo de doce años sale de los últimos cuatro semestres.**
+Y 2017-H2 llegó a dar 36,1 % con 122 operaciones y −34 R: hay precedente de
+tramos mucho peores que el actual.
+
+El acumulado llegó a **+16,0 R en 2017-H1 y cayó a −70,8 R en 2022-H1**: una
+caída de **86,8 R**, que a 150 € son 13.020 € sobre una cuenta de 12.000. Corrida
+desde 2014, esta configuración habría reventado la cuenta dos veces antes de
+llegar al tramo bueno.
+
+### Los datos antiguos son buenos, comprobado
+
+Antes de aceptarlo se verificó que el histórico antiguo de la demo no estuviera
+fabricado. No lo está:
+
+```
+  par       ticks/vela 2014-2019   2025-2026
+  EURUSD           1.050            1.048      identico
+  GBPJPY           1.547            1.902
+  EURJPY           1.704            1.358
+  USDCAD             960              846
+```
+
+El detalle DENTRO de cada vela —que es lo que decide si una orden limitada se
+llena— es igual de real en 2014 que hoy. Unas 24.800 velas al año de forma
+constante, velas planas por debajo del 0,05 %, y entre 0 y 2 huecos de más de un
+día al año, que son festivos.
+
+El único que cambia de verdad es el oro: su rango medio pasa de 1,4 dólares a
+**11,1 en 2026**, con el volumen de ticks triplicado. Eso es cambio de mercado,
+no de datos.
+
+### El fallo de método, que es mío
+
+Los datos de 2014 estaban en el bróker **todo el tiempo**. Bajarlos costó treinta
+segundos. Trabajé meses con los ficheros en caché, que empezaban en 2023, y nunca
+pregunté si había más.
+
+El walk-forward del 18/10, que presenté como la prueba de fondo que nos faltaba,
+cubría 2023-2026: la rodaja más fina disponible, y encima tres de sus cuatro años
+son el régimen bueno. En esa misma entrada escribí que *«el filo es mucho mayor
+en los dos últimos años»* y lo dejé como un aviso de una línea en lugar de
+tratarlo como lo que era: la señal de que estábamos midiendo una anomalía.
+
+**La EMA, el suelo del stop, los pares, el riesgo, las dos mitades, el listón, el
+Monte Carlo: todo se midió sobre 2025-2026.** Las pruebas estaban bien hechas; el
+periodo estaba mal elegido. Una prueba de dos mitades sobre un tramo anómalo
+confirma la anomalía en sus dos mitades.
+
+### Lo que NO queda demostrado
+
+Que el filo sea falso ahora. Puede que algo cambiara de verdad en 2025 —el oro
+demuestra que los mercados cambian— y que el régimen bueno siga vivo. Pero eso es
+una hipótesis, y lo único que hoy la apoya es precisamente el tramo que queremos
+explicar.
+
+Con 23 operaciones en vivo no se distingue entre una mala racha dentro del
+régimen bueno y la vuelta al régimen de siempre.
+
+### Decisión: sigue en demo, sin tocar nada
+
+Reinaldo decide mantenerlo operando en la cuenta demo. Es la decisión correcta:
+no cuesta nada y genera la ÚNICA evidencia que puede resolver esto, que es fuera
+de muestra y hacia delante.
+
+**No se toca ningún parámetro.** Cualquier ajuste que se midiera ahora volvería a
+medirse sobre los mismos dos años buenos.
+
+**Y no va a una cuenta de fondeo ni a dinero real** hasta que esto se resuelva.
+
+### La regla de revisión, escrita por adelantado
+
+Para no leer luego los números a conveniencia:
+
+```
+  Se cuentan las operaciones en vivo desde el 08/10/2026 (van 23).
+  A las 75 operaciones -- unos tres meses mas al ritmo actual:
+
+      acierto < 50%        el regimen bueno se acabo. Se para.
+      acierto > 58%        el regimen bueno sigue. Se mantiene en demo.
+      entre 50% y 58%      no se sabe. Se espera a 150.
+```
+
+Con 75 operaciones el error típico es del 5,8 %, así que el corte en el 55 %
+separa las dos hipótesis (49,3 % y 61 %) por una desviación a cada lado. No es
+concluyente pero sí informativo. **Para zanjarlo del todo harían falta 164
+operaciones**, que son unos nueve meses.
+
+### Lo que esto obliga a recordar para siempre
+
+Antes de medir nada, preguntar **cuántos datos hay de verdad**, no cuántos hay a
+mano. Y si un periodo rinde mucho más que el resto, eso no es un detalle al pie:
+es la pregunta principal.
